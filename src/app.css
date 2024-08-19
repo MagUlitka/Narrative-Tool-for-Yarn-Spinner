@@ -1,0 +1,27 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+body {
+    padding: 0;
+    margin: 0;
+}
+
+#pageBody {
+    display: block;
+}
+
+#svelteCanvas {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+button {
+    margin-right: 5px !important;
+}
+
+#navspace {
+   width: 60vw;
+}

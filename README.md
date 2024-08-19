@@ -32,7 +32,9 @@ A simple, user-friendly tool for generating Yarn script from the tree graph. All
 - loads .yarn file and generates a tree from script
 - always has variable containing player's name
 - generates a list of declared variables as a separate text file
+- checks for differences between file versions
 
 # Logs
 
 - **14.08.2024** - initialised the project
+- **19.08.2024** - Built the page & added basic functionalities (nodes dragging, duplicating, deleting) using SvelteFlow and Svelte FLowbite examples; provided the skeleton of *StoryNode*. As a next step, enable node editing and refine structure.
