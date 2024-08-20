@@ -1,11 +1,15 @@
 
 <script lang="ts">
   import { writable } from 'svelte/store';
- import { SvelteFlow, Background, Controls, MiniMap} from '@xyflow/svelte';
+ import { SvelteFlow, Background, Controls, MiniMap, type ColorMode} from '@xyflow/svelte';
  import '@xyflow/svelte/dist/style.css';
  import StoryNode from './StoryNode.svelte';
  import NodeMenu from './NodeMenu.svelte';
  import { Navbar, NavLi, NavUl, NavHamburger, Button} from 'flowbite-svelte';
+import type { Writable } from 'svelte/store';
+import color from './NodeMenu.svelte';
+import NodeEditPanel from './NodeEditPanel.svelte';
+	import type { ColorPicker } from 'svelvet';
 
  const nodeTypes = {
    'story-node': StoryNode
@@ -15,18 +19,23 @@
    id: '1', 
    type: 'story-node',
    position: { x: 0, y: 0 }, 
-   data: { title: 'default_title', content: Array()}, 
+   data: { title: 'default_title', color: '#ffffff', content: Array()}, 
  },
  {
    id: '2',
+   type: 'story-node',
    position: { x: 100, y: 100 },
-   data: { label: 'world' },
+   data: { title: 'world', color: '#eeeeee', content: Array() },
  },]);
  const edges = writable([]);
 
  let menu: { id: string; top?: number; left?: number; right?: number; bottom?: number } | null;
   let width: number;
   let height: number;
+
+  let editPanel = null;
+
+  //let editPanel: {nodeId: string; nodeTitle: Writable<unknown>; color: Writable<unknown>; content: Writable<unknown>} | null;
 
   function handleContextMenu({ detail: { event, node } }) {
     event.preventDefault();
@@ -42,6 +51,12 @@
 
   function handlePaneClick() {
     menu = null;
+  }
+
+  function handleEditNode(event) {
+    const { id, title, content, color } = event.detail;
+    console.log(event.detail);
+    editPanel = { nodeId: id, title, content, color };
   }
 
 </script>
@@ -63,7 +78,7 @@
       on:paneclick={handlePaneClick} fitView>
         <Background />
         <Controls />
-        <MiniMap nodeStrokeWidth={3} pannable zoomable/>
+        <MiniMap nodeStrokeWidth={3} pannable/>
         {#if menu}
         <NodeMenu
           onClick={handlePaneClick}
@@ -72,8 +87,12 @@
           left={menu.left}
           right={menu.right}
           bottom={menu.bottom}
+          on:editnode={handleEditNode}
         />
       {/if}
+      {#if editPanel}
+      <NodeEditPanel id={editPanel.nodeId} title={editPanel.nodeTitle} content={editPanel.content} color={editPanel.color} />
+          {/if}
       </SvelteFlow>  
     </div>
       </div>

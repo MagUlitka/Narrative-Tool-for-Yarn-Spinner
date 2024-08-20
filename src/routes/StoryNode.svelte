@@ -12,12 +12,12 @@
       type: Writable<string>;
       value: Writable<any>;
     }
-    export let data: { title: Writable<string>, group: Writable<Node>, content: Writable<Array<Line>>, customVariables: Writable<Array<Variable>>, choices: Writable<Array<Node>> };
+    export let data: { title: Writable<string>, group: Writable<Node>, color: string, content: Writable<Array<string>>, customVariables: Writable<Array<Variable>>, choices: Writable<Array<Node>> };
       const { title, group, content, customVariables, choices } = data;
     $$restProps;
   </script>
    
-  <div class="storynode">
+  <div class="storynode" style="background-color: {data.color}">
     <NodeResizer minWidth={100} minHeight={100} isVisible={selected} />
     <Handle type="target" position={Position.Top} />
     <div>
@@ -30,7 +30,6 @@
   <style>
     .storynode {
       padding: 10px;
-      background: #eee;
       width: 100%;
       height: 100%;
     }

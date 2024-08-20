@@ -1,5 +1,11 @@
 <script lang="ts">
-    import { useEdges, useNodes } from '@xyflow/svelte';
+    import { useEdges, useNodes, useNodesData } from '@xyflow/svelte';
+    import NodeEditPanel from './NodeEditPanel.svelte';
+    import { writable, type Writable } from 'svelte/store';
+	import StoryNode from './StoryNode.svelte';
+  import { createEventDispatcher } from 'svelte';
+
+	const dispatch = createEventDispatcher();
   
     export let onClick: () => void;
     export let id: string;
@@ -11,26 +17,25 @@
     const allNodes = useNodes();
     const edges = useEdges();
     let lastId = $allNodes.at(-1)?.id == undefined ? 1 : $allNodes.at(-1)?.id;
+    let editedNode = $allNodes.find((node) => node.id === id) === undefined ? $allNodes.find((node) => parseInt(node.id) === 1) : $allNodes.find((node) => node.id === id);
 
-    console.log(lastId);
-  
+    export let title = writable('' || editedNode?.data.title);
+    export let content = writable('' || editedNode?.data.content);  
+    export let color = writable(editedNode?.data.color || '#000000');  
+
     function duplicateNode() {
       const node = $allNodes.find((node) => node.id === id);
-      console.log(node);
       if (node) {
        let foundNode = $allNodes.find((node) => parseInt(node.id) == lastId);
-       console.log(foundNode);
-       console.log(lastId);
        if(foundNode) {
         lastId = parseInt(foundNode.id) + 1;
        }
-    console.log(lastId);
         $allNodes.push({
           ...node,
           id: `${lastId}`,
           position: {
-            x: node.position.x,
-            y: node.position.y + 50
+            x: node.position.x + 100,
+            y: node.position.y + 100
           }
         });
       }
@@ -40,6 +45,22 @@
       $allNodes = $allNodes.filter((node) => node.id !== id);
       $edges = $edges.filter((edge) => edge.source !== id && edge.target !== id);
     }
+
+    function editNode() {
+      const node = $allNodes.find((node) => node.id === id);
+      console.log(node);
+      if(node){
+      const title = writable(node.data.title ?? '');
+      const content = writable(node.data.content ?? '');
+      const color = writable(node.data.color ?? '#000000');
+
+      const editPanelData = { id: node.id, title, content, color };
+      dispatch('editnode', editPanelData);
+    }  
+    }
+
+    
+      
   </script>
   
   <div
@@ -50,10 +71,11 @@
     <p style="margin: 0.5em;">
       <small>node: {id}</small>
     </p>
-    <button on:click={deleteNode}>edit</button>
+    <button on:click={editNode}>edit</button>
     <button on:click={duplicateNode}>duplicate</button>
     <button on:click={deleteNode}>delete</button>
   </div>
+ 
   
   <style>
     .context-menu {
