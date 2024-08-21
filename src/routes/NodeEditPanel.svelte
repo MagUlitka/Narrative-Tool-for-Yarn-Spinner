@@ -1,17 +1,66 @@
-<script lang="ts">
-    import StoryNode from "./StoryNode.svelte";
-    import NodeMenu from "./NodeMenu.svelte";
-    import editedNode from "./NodeMenu.svelte";
-	import { writable, type Writable } from "svelte/store";
-    
+<script lang="ts" module="">
+    import NodeData from "./StoryNode.svelte";
+	  import { get, writable, type Writable } from "svelte/store";
+    import { nodes } from "./stores";
+	  import { useNodes } from "@xyflow/svelte";
+    export let title: Writable<string> = writable('');
     export let id: string;
-    export let title: Writable<unknown>;
-    export let content: Writable<unknown>;
-    export let color: Writable<unknown>;
+    export let content: Writable<Array<string>> = writable(Array());
+    export let color: Writable<string> = writable("#ffffff");
+
+    type Node = {
+      id: string;
+      data: NodeData;
+      position: { x: number; y: number };
+      }
+    
+    $: {
+        const unsubscribe = nodes.subscribe(nodeArray => {
+        const selectedNode = nodeArray.find(node => node.id === id);
+        if (selectedNode) {
+            console.log(selectedNode)
+            const nodeData = selectedNode.data as NodeData;
+            title = nodeData.title as Writable<string>;
+            content =  nodeData.content as Writable<Array<string>>;
+            color =  nodeData.color as Writable<string>;
+        }
+        return () => unsubscribe();
+        })
+    }
+
+    $: updateNode({ title, content, color });
+
+    function updateNode({title, content, color}: {
+      title: Writable<string>;
+      content: Writable<Array<string>>;
+      color: Writable<string>;
+    }) {
+      const titleVal = title;
+      const contentVal = content;
+      const colorVal = color;
+
+      nodes.update(nodeArray => {
+          return nodeArray.map(node => {
+            if (node.id === id) {
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  title: titleVal,
+                  content: contentVal,
+                  color: colorVal
+                }
+              };
+            }
+            return node;
+          });
+        });
+    }
+
 </script>
 <div class="updatenode__panel">
     <label>Title:</label>
-    <input bind:value={$title} />
+    <input bind:value={$title}/>
 
     <label class="updatenode__bglabel">Color:</label>
     <input type="color" bind:value={$color}/>
@@ -32,10 +81,6 @@
     width: 25%;
     height: 50%;
 }
-  
-    .updatenode__controls label {
-      display: block;
-    }
   
     .updatenode__bglabel {
       margin-top: 10px;

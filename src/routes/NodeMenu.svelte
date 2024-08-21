@@ -1,27 +1,39 @@
 <script lang="ts">
     import { useEdges, useNodes, useNodesData } from '@xyflow/svelte';
-    import NodeEditPanel from './NodeEditPanel.svelte';
-    import { writable, type Writable } from 'svelte/store';
-	import StoryNode from './StoryNode.svelte';
-  import { createEventDispatcher } from 'svelte';
+    import { get, writable, type Writable } from 'svelte/store';
+    import NodeData from "./StoryNode.svelte";
+    import { createEventDispatcher } from 'svelte';
+    import { nodes } from './stores';
 
-	const dispatch = createEventDispatcher();
-  
     export let onClick: () => void;
     export let id: string;
     export let top: number | undefined;
     export let left: number | undefined;
     export let right: number | undefined;
     export let bottom: number | undefined;
+
+    export let nodeTitle: Writable<string> = writable('');
+    export let nodeContent: Writable<Array<string>> = writable(Array());
+    export let nodeColor: Writable<string> = writable("#ffffff");
+
+    const dispatch = createEventDispatcher();
+      $: {
+        nodes.subscribe(nodeArray => {
+          const selectedNode = nodeArray.find(node => node.id === id);
+          if (selectedNode) {
+            console.log(selectedNode)
+             const nodeData = selectedNode.data as NodeData;
+             nodeTitle = nodeData.title as Writable<string>;
+             nodeContent =  nodeData.content as Writable<Array<string>>;
+             nodeColor =  nodeData.color as Writable<string>;
+            }
+        })
+       
+    }
   
     const allNodes = useNodes();
-    const edges = useEdges();
+    const allEdges = useEdges();
     let lastId = $allNodes.at(-1)?.id == undefined ? 1 : $allNodes.at(-1)?.id;
-    let editedNode = $allNodes.find((node) => node.id === id) === undefined ? $allNodes.find((node) => parseInt(node.id) === 1) : $allNodes.find((node) => node.id === id);
-
-    export let title = writable('' || editedNode?.data.title);
-    export let content = writable('' || editedNode?.data.content);  
-    export let color = writable(editedNode?.data.color || '#000000');  
 
     function duplicateNode() {
       const node = $allNodes.find((node) => node.id === id);
@@ -43,24 +55,27 @@
     }
     function deleteNode() {
       $allNodes = $allNodes.filter((node) => node.id !== id);
-      $edges = $edges.filter((edge) => edge.source !== id && edge.target !== id);
+      $allEdges = $allEdges.filter((edge) => edge.source !== id && edge.target !== id);
     }
+
+
+    //enables editPanel
 
     function editNode() {
+
       const node = $allNodes.find((node) => node.id === id);
-      console.log(node);
       if(node){
-      const title = writable(node.data.title ?? '');
-      const content = writable(node.data.content ?? '');
-      const color = writable(node.data.color ?? '#000000');
+        const title = nodeTitle;
+        const content = nodeContent;
+        const color = nodeColor;
 
-      const editPanelData = { id: node.id, title, content, color };
-      dispatch('editnode', editPanelData);
-    }  
-    }
+        const editPanelData = { id: node.id, nodeTitle: title, content: content, color: color };
+        dispatch('editnode', editPanelData);
+        
+        $allNodes = $allNodes;
 
-    
-      
+  }
+}
   </script>
   
   <div

@@ -1,41 +1,23 @@
 
 <script lang="ts">
-  import { writable } from 'svelte/store';
- import { SvelteFlow, Background, Controls, MiniMap, type ColorMode} from '@xyflow/svelte';
- import '@xyflow/svelte/dist/style.css';
- import StoryNode from './StoryNode.svelte';
- import NodeMenu from './NodeMenu.svelte';
- import { Navbar, NavLi, NavUl, NavHamburger, Button} from 'flowbite-svelte';
-import type { Writable } from 'svelte/store';
-import color from './NodeMenu.svelte';
-import NodeEditPanel from './NodeEditPanel.svelte';
-	import type { ColorPicker } from 'svelvet';
+  import { SvelteFlow, Background, Controls, MiniMap } from '@xyflow/svelte';
+  import '@xyflow/svelte/dist/style.css';
+  import StoryNode from './StoryNode.svelte';
+  import NodeMenu from './NodeMenu.svelte';
+  import { Navbar, Button} from 'flowbite-svelte';
+  import type { Writable } from 'svelte/store';
+  import NodeEditPanel from './NodeEditPanel.svelte';
+  import { nodes, edges } from './stores';
 
- const nodeTypes = {
-   'story-node': StoryNode
- };
+  const nodeTypes = {
+    'story-node': StoryNode
+  };
 
- const nodes = writable([ {
-   id: '1', 
-   type: 'story-node',
-   position: { x: 0, y: 0 }, 
-   data: { title: 'default_title', color: '#ffffff', content: Array()}, 
- },
- {
-   id: '2',
-   type: 'story-node',
-   position: { x: 100, y: 100 },
-   data: { title: 'world', color: '#eeeeee', content: Array() },
- },]);
- const edges = writable([]);
-
- let menu: { id: string; top?: number; left?: number; right?: number; bottom?: number } | null;
+  let menu: { id: string; top?: number; left?: number; right?: number; bottom?: number } | null;
   let width: number;
   let height: number;
 
-  let editPanel = null;
-
-  //let editPanel: {nodeId: string; nodeTitle: Writable<unknown>; color: Writable<unknown>; content: Writable<unknown>} | null;
+  let editPanel: {nodeId: string; nodeTitle: Writable<string>; color: Writable<string>; content: Writable<Array<string>>} | null;
 
   function handleContextMenu({ detail: { event, node } }) {
     event.preventDefault();
@@ -55,10 +37,9 @@ import NodeEditPanel from './NodeEditPanel.svelte';
 
   function handleEditNode(event) {
     const { id, title, content, color } = event.detail;
-    console.log(event.detail);
-    editPanel = { nodeId: id, title, content, color };
+    editPanel = { nodeId: id, nodeTitle: title, content: content, color: color };
+    console.log(editPanel);
   }
-
 </script>
 
   
