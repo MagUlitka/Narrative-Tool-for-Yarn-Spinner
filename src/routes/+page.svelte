@@ -38,7 +38,6 @@
   function handleEditNode(event) {
     const { id, title, content, color } = event.detail;
     editPanel = { nodeId: id, nodeTitle: title, content: content, color: color };
-    console.log(editPanel);
   }
 </script>
 

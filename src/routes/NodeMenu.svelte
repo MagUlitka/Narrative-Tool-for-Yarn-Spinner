@@ -3,7 +3,7 @@
     import { get, writable, type Writable } from 'svelte/store';
     import NodeData from "./StoryNode.svelte";
     import { createEventDispatcher } from 'svelte';
-    import { nodes } from './stores';
+    import { createNode, nodes } from './stores';
 
     export let onClick: () => void;
     export let id: string;
@@ -15,14 +15,15 @@
     export let nodeTitle: Writable<string> = writable('');
     export let nodeContent: Writable<Array<string>> = writable(Array());
     export let nodeColor: Writable<string> = writable("#ffffff");
+    export let nodeType: string = '';
 
     const dispatch = createEventDispatcher();
       $: {
         nodes.subscribe(nodeArray => {
           const selectedNode = nodeArray.find(node => node.id === id);
           if (selectedNode) {
-            console.log(selectedNode)
              const nodeData = selectedNode.data as NodeData;
+             nodeType = selectedNode.type as string;
              nodeTitle = nodeData.title as Writable<string>;
              nodeContent =  nodeData.content as Writable<Array<string>>;
              nodeColor =  nodeData.color as Writable<string>;
@@ -42,14 +43,10 @@
        if(foundNode) {
         lastId = parseInt(foundNode.id) + 1;
        }
-        $allNodes.push({
-          ...node,
-          id: `${lastId}`,
-          position: {
-            x: node.position.x + 100,
-            y: node.position.y + 100
-          }
-        });
+       const newNode = createNode(
+        nodeType, node.position.x + 100, node.position.y + 100, get(nodeTitle), get(nodeColor), get(nodeContent))
+       
+        $allNodes.push(newNode);
       }
       $allNodes = $allNodes;
     }

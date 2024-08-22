@@ -8,6 +8,8 @@
     export let content: Writable<Array<string>> = writable(Array());
     export let color: Writable<string> = writable("#ffffff");
 
+    export let contentInput: Writable<Array<string>> = writable(Array());
+
     type Node = {
       id: string;
       data: NodeData;
@@ -18,7 +20,6 @@
         const unsubscribe = nodes.subscribe(nodeArray => {
         const selectedNode = nodeArray.find(node => node.id === id);
         if (selectedNode) {
-            console.log(selectedNode)
             const nodeData = selectedNode.data as NodeData;
             title = nodeData.title as Writable<string>;
             content =  nodeData.content as Writable<Array<string>>;
@@ -55,8 +56,16 @@
             return node;
           });
         });
+        //console.log($content);
+        console.log($contentInput);
     }
 
+    function handleTextareaInput(event) {
+    // Split the input value into an array of strings, retaining empty lines
+    contentInput.set(event.target.value.split('\n'));
+   // content = contentInput;
+    //content.set(event.target.value.split('\n'));
+  }
 </script>
 <div class="updatenode__panel">
     <label>Title:</label>
@@ -66,7 +75,7 @@
     <input type="color" bind:value={$color}/>
 
     <label class="updatenode__content">Content:</label>
-    <textarea bind:value={$content}></textarea>
+    <textarea bind:value={$content} on:input={handleTextareaInput}></textarea>
 
   </div>
 
@@ -91,4 +100,9 @@
       display: flex;
       align-items: center;
     }
+
+    textarea {
+		width: 100%;
+		height: 200px;
+	}
   </style> 

@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Handle, Position, NodeResizer, type NodeProps } from '@xyflow/svelte';
-    import type { Writable } from 'svelte/store';
+    import { get, writable, type Writable } from 'svelte/store';
+	import NodeEditPanel from './NodeEditPanel.svelte';
     type $Props = NodeProps;
 
     type Line = {
@@ -21,16 +22,18 @@
     };
 
     export let data: NodeData;
-    export let localTitle: string;
-    export let localContent: Array<string>;
-    export let localColor: string;
+    export let localTitle: string = '';  // Initialize with default empty string
+    export let localContent: Array<string> = [];  // Initialize with an empty array
+    export let localColor: string = '#ffffff';  // Initialize with default color
     export let selected: $Props['selected'] = undefined;
 
-
+    // Make sure that `localContent` and other variables are initialized from stores
     $: {
         data.title.subscribe(value => localTitle = value);
         data.color.subscribe(value => localColor = value);
-        data.content.subscribe(value => localContent = value);
+        data.content.subscribe(value => {
+            localContent = value;
+        });
     }
 
     $$restProps;
@@ -41,7 +44,9 @@
     <Handle type="target" position={Position.Top} />
     <div>
     title: <strong>{localTitle}</strong><br>
-    content: {localContent}
+    <div class="storynode__content">
+    {localContent}
+    </div>
     </div>
     <Handle type="source" position={Position.Bottom} />
   </div>
@@ -51,5 +56,9 @@
       padding: 10px;
       width: 100%;
       height: 100%;
+    }
+    
+    .storynode__content {
+      white-space: pre-wrap;
     }
   </style>
