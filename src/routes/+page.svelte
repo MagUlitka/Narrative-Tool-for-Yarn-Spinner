@@ -36,6 +36,7 @@
   }
 
   function handleEditNode(event) {
+    event.preventDefault();
     const { id, title, content, color } = event.detail;
     editPanel = { nodeId: id, nodeTitle: title, content: content, color: color };
   }

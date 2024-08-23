@@ -45,7 +45,9 @@
     <div>
     title: <strong>{localTitle}</strong><br>
     <div class="storynode__content">
-    {localContent}
+      {#each localContent as line}
+      {line}<br>
+  {/each}
     </div>
     </div>
     <Handle type="source" position={Position.Bottom} />

@@ -16,6 +16,7 @@
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@tailwindcss/typography": "^0.5.14",
+		"@types/quill": "^2.0.14",
 		"autoprefixer": "^10.4.20",
 		"flowbite": "^2.5.1",
 		"flowbite-svelte": "^0.46.15",
@@ -30,6 +31,8 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@xyflow/svelte": "^0.1.15"
+		"@xyflow/svelte": "^0.1.15",
+		"ngx-quill": "^26.0.8",
+		"quill": "^2.0.2"
 	}
 }

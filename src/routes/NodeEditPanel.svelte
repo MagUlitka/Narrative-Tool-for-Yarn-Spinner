@@ -3,6 +3,10 @@
 	  import { get, writable, type Writable } from "svelte/store";
     import { nodes } from "./stores";
 	  import { useNodes } from "@xyflow/svelte";
+    import 'quill/dist/quill.snow.css';
+	import type Quill  from "quill";
+  import { onMount } from 'svelte';
+  
     export let title: Writable<string> = writable('');
     export let id: string;
     export let content: Writable<Array<string>> = writable(Array());
@@ -10,20 +14,68 @@
 
     export let contentInput: Writable<Array<string>> = writable(Array());
 
+    let quill:  Quill | null;
+
+    let lastSelectedNodeId: string | null = null;
+
+      onMount(() => {
+    if (typeof document !== 'undefined') {
+      import('quill').then((module) => {
+        const Quill = module.default;
+
+        quill = new Quill('#editor', {
+          theme: 'snow',
+          formats: ['italic', 'bold'],
+          modules: {
+          toolbar: ['bold', 'italic']
+      }
+        });
+
+
+        quill.on('text-change', () => {
+          if (quill) {
+          const editorText = quill.getText(); 
+        content.set(editorText.trim().split('\n')); 
+        contentInput.set(editorText.trim().split('\n')); 
+          }
+        });
+      });
+    }
+  });
+
     type Node = {
       id: string;
       data: NodeData;
       position: { x: number; y: number };
       }
-    
+
     $: {
         const unsubscribe = nodes.subscribe(nodeArray => {
         const selectedNode = nodeArray.find(node => node.id === id);
-        if (selectedNode) {
+        if (selectedNode && selectedNode.id != lastSelectedNodeId) {
+
+          lastSelectedNodeId = selectedNode.id;
+
             const nodeData = selectedNode.data as NodeData;
             title = nodeData.title as Writable<string>;
             content =  nodeData.content as Writable<Array<string>>;
             color =  nodeData.color as Writable<string>;
+            lastSelectedNodeId = selectedNode.id;
+            
+
+              if (quill) {
+                const contentArray = get(nodeData.content) as Array<string>;
+      //  console.log('Content Array:', contentArray);  
+
+        const cursorPosition = quill.getSelection()?.index ?? 0;
+
+    
+       const contentHtml = contentArray.map(line => `${line}`).join('\n');
+        quill.root.innerHTML = contentHtml;
+        quill.setSelection(cursorPosition);
+        }
+
+            
         }
         return () => unsubscribe();
         })
@@ -60,12 +112,6 @@
         console.log($contentInput);
     }
 
-    function handleTextareaInput(event) {
-    // Split the input value into an array of strings, retaining empty lines
-    contentInput.set(event.target.value.split('\n'));
-   // content = contentInput;
-    //content.set(event.target.value.split('\n'));
-  }
 </script>
 <div class="updatenode__panel">
     <label>Title:</label>
@@ -74,8 +120,8 @@
     <label class="updatenode__bglabel">Color:</label>
     <input type="color" bind:value={$color}/>
 
-    <label class="updatenode__content">Content:</label>
-    <textarea bind:value={$content} on:input={handleTextareaInput}></textarea>
+    <div id="editor">
+    </div>
 
   </div>
 

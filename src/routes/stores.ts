@@ -1,6 +1,7 @@
 import { writable } from "svelte/store";
 import type { Node } from '@xyflow/svelte'; 
 
+
 let lastId = 0;
 
 function getNextId(): number {
@@ -52,3 +53,5 @@ function addNode() {
 }
 
 export const edges = writable([]);
+
+
