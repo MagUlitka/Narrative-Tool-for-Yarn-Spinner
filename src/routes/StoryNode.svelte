@@ -1,7 +1,6 @@
 <script lang="ts">
     import { Handle, Position, NodeResizer, type NodeProps } from '@xyflow/svelte';
-    import { get, writable, type Writable } from 'svelte/store';
-	import NodeEditPanel from './NodeEditPanel.svelte';
+    import {type Writable } from 'svelte/store';
     type $Props = NodeProps;
 
     type Line = {
@@ -18,22 +17,22 @@
     type NodeData = {
         title: Writable<string>;
         color: Writable<string>;
-        content: Writable<Array<string>>;
+        content: Writable<string>;
+        delta: Writable<any>;
     };
 
     export let data: NodeData;
-    export let localTitle: string = '';  // Initialize with default empty string
-    export let localContent: Array<string> = [];  // Initialize with an empty array
-    export let localColor: string = '#ffffff';  // Initialize with default color
+    export let localTitle: string = ''; 
+    export let localContent: string = ''; 
+    export let localDelta: any = {};
+    export let localColor: string = '#ffffff'; 
     export let selected: $Props['selected'] = undefined;
 
-    // Make sure that `localContent` and other variables are initialized from stores
     $: {
         data.title.subscribe(value => localTitle = value);
         data.color.subscribe(value => localColor = value);
-        data.content.subscribe(value => {
-            localContent = value;
-        });
+        data.content.subscribe(value => localContent = value);
+        data.delta.subscribe(value => localDelta = value);
     }
 
     $$restProps;
@@ -45,9 +44,7 @@
     <div>
     title: <strong>{localTitle}</strong><br>
     <div class="storynode__content">
-      {#each localContent as line}
-      {line}<br>
-  {/each}
+      {@html localContent}
     </div>
     </div>
     <Handle type="source" position={Position.Bottom} />

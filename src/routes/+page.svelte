@@ -4,7 +4,7 @@
   import '@xyflow/svelte/dist/style.css';
   import StoryNode from './StoryNode.svelte';
   import NodeMenu from './NodeMenu.svelte';
-  import { Navbar, Button} from 'flowbite-svelte';
+  import { Navbar, Button, TabItem, ToolbarGroup} from 'flowbite-svelte';
   import type { Writable } from 'svelte/store';
   import NodeEditPanel from './NodeEditPanel.svelte';
   import { nodes, edges } from './stores';
@@ -17,7 +17,10 @@
   let width: number;
   let height: number;
 
-  let editPanel: {nodeId: string; nodeTitle: Writable<string>; color: Writable<string>; content: Writable<Array<string>>} | null;
+  let editPanel: {nodeId: string; nodeTitle: Writable<string>; color: Writable<string>; content: Writable<string>} | null;
+
+  let editPanelRef: HTMLDivElement | null = null;
+
 
   function handleContextMenu({ detail: { event, node } }) {
     event.preventDefault();
@@ -31,15 +34,20 @@
     };
   }
 
-  function handlePaneClick() {
+  function handlePaneClick({ detail: { event } }) {
     menu = null;
+    let mouseEvent = event as MouseEvent;
+    if (editPanelRef && !editPanelRef.contains(mouseEvent.target as Node)) {
+      editPanel = null;
+    }
+    
   }
 
   function handleEditNode(event) {
-    event.preventDefault();
     const { id, title, content, color } = event.detail;
     editPanel = { nodeId: id, nodeTitle: title, content: content, color: color };
   }
+
 </script>
 
   
@@ -72,7 +80,8 @@
         />
       {/if}
       {#if editPanel}
-      <NodeEditPanel id={editPanel.nodeId} title={editPanel.nodeTitle} content={editPanel.content} color={editPanel.color} />
+      <NodeEditPanel bind:panelRef={editPanelRef}
+      id={editPanel.nodeId} title={editPanel.nodeTitle} content={editPanel.content} color={editPanel.color} on:close={() => editPanel = null}/>
           {/if}
       </SvelteFlow>  
     </div>

@@ -5,7 +5,7 @@
     import { createEventDispatcher } from 'svelte';
     import { createNode, nodes } from './stores';
 
-    export let onClick: () => void;
+    export let onClick: ({ detail: { event } }) => void;
     export let id: string;
     export let top: number | undefined;
     export let left: number | undefined;
@@ -13,9 +13,10 @@
     export let bottom: number | undefined;
 
     export let nodeTitle: Writable<string> = writable('');
-    export let nodeContent: Writable<Array<string>> = writable(Array());
+    export let nodeContent: Writable<string> = writable('');
     export let nodeColor: Writable<string> = writable("#ffffff");
     export let nodeType: string = '';
+    export let nodeDelta: Writable<any> = writable({});
 
     const dispatch = createEventDispatcher();
       $: {
@@ -25,7 +26,7 @@
              const nodeData = selectedNode.data as NodeData;
              nodeType = selectedNode.type as string;
              nodeTitle = nodeData.title as Writable<string>;
-             nodeContent =  nodeData.content as Writable<Array<string>>;
+             nodeContent =  nodeData.content as Writable<string>;
              nodeColor =  nodeData.color as Writable<string>;
             }
         })
@@ -44,7 +45,7 @@
         lastId = parseInt(foundNode.id) + 1;
        }
        const newNode = createNode(
-        nodeType, node.position.x + 100, node.position.y + 100, get(nodeTitle), get(nodeColor), get(nodeContent))
+        nodeType, node.position.x + 100, node.position.y + 100, get(nodeTitle), get(nodeColor), get(nodeDelta), get(nodeContent))
        
         $allNodes.push(newNode);
       }
@@ -66,7 +67,7 @@
         const content = nodeContent;
         const color = nodeColor;
 
-        const editPanelData = { id: node.id, nodeTitle: title, content: content, color: color };
+        const editPanelData = { id: node.id, nodeTitle: title, delta: nodeDelta, content: content, color: color };
         dispatch('editnode', editPanelData);
         
         $allNodes = $allNodes;

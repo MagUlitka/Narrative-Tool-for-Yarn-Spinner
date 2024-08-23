@@ -9,7 +9,7 @@ function getNextId(): number {
   return lastId;
 }
 
-export function createNode(type: string, x: number, y: number, title: string, color: string, content: Array<string>): Node {
+export function createNode(type: string, x: number, y: number, title: string, color: string, delta: any, content: string): Node {
   return {
     id: `${getNextId()}`,
     type,
@@ -17,14 +17,15 @@ export function createNode(type: string, x: number, y: number, title: string, co
     data: {
       title: writable(title),
       color: writable(color),
+      delta: writable({}),
       content: writable(content)
     }
   };
 }
 
 export const nodes = writable<Node[]>([ 
-  createNode('story-node', 100, 100, 'New Node1', '#ffffff', ['aaaa']), 
-  createNode('story-node', 200, 200, 'New Node2', '#eeeeee', [])
+  createNode('story-node', 100, 100, 'New Node1', '#ffffff', {},''), 
+  createNode('story-node', 200, 200, 'New Node2', '#eeeeee', {}, '')
 ]);
 
 
@@ -35,8 +36,9 @@ function addNode() {
       100,             
       100,             
       'New Node',      
-      '#ffffff',      
-      []               
+      '#ffffff',
+      {},      
+      ''               
     );
 
     nodes.set([

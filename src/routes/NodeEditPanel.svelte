@@ -2,27 +2,29 @@
     import NodeData from "./StoryNode.svelte";
 	  import { get, writable, type Writable } from "svelte/store";
     import { nodes } from "./stores";
-	  import { useNodes } from "@xyflow/svelte";
     import 'quill/dist/quill.snow.css';
 	import type Quill  from "quill";
-  import { onMount } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
   
     export let title: Writable<string> = writable('');
     export let id: string;
-    export let content: Writable<Array<string>> = writable(Array());
+    export let content: Writable<string> = writable('');
     export let color: Writable<string> = writable("#ffffff");
 
-    export let contentInput: Writable<Array<string>> = writable(Array());
+    export let deltaInput: Writable<any> = writable({});
 
     let quill:  Quill | null;
 
     let lastSelectedNodeId: string | null = null;
 
-      onMount(() => {
-    if (typeof document !== 'undefined') {
+    let editorElement: HTMLDivElement | null = null;
+    export let panelRef: HTMLDivElement | null = null;
+
+    onMount(() => {
+    if (typeof document !== 'undefined' && editorElement) {
       import('quill').then((module) => {
         const Quill = module.default;
-
+        if(editorElement){
         quill = new Quill('#editor', {
           theme: 'snow',
           formats: ['italic', 'bold'],
@@ -31,15 +33,26 @@
       }
         });
 
+        const delta = get(deltaInput);
+        quill.setContents(delta);
 
         quill.on('text-change', () => {
           if (quill) {
-          const editorText = quill.getText(); 
-        content.set(editorText.trim().split('\n')); 
-        contentInput.set(editorText.trim().split('\n')); 
+            const delta = quill.getContents();  
+            const html = quill.root.innerHTML; 
+            content.set(html);  
+            deltaInput.set(delta); 
           }
         });
+      }
       });
+    }
+  });
+
+  onDestroy(() => {
+    if (quill) {
+      quill.disable();
+      quill = null;
     }
   });
 
@@ -58,21 +71,17 @@
 
             const nodeData = selectedNode.data as NodeData;
             title = nodeData.title as Writable<string>;
-            content =  nodeData.content as Writable<Array<string>>;
+              content = nodeData.content as Writable<string>;
+                deltaInput = nodeData.delta as Writable<any>; 
             color =  nodeData.color as Writable<string>;
             lastSelectedNodeId = selectedNode.id;
             
 
               if (quill) {
-                const contentArray = get(nodeData.content) as Array<string>;
-      //  console.log('Content Array:', contentArray);  
-
-        const cursorPosition = quill.getSelection()?.index ?? 0;
-
-    
-       const contentHtml = contentArray.map(line => `${line}`).join('\n');
-        quill.root.innerHTML = contentHtml;
-        quill.setSelection(cursorPosition);
+                 const delta = get(deltaInput);
+                  if (delta && quill) {
+                        quill.setContents(delta);
+                  }
         }
 
             
@@ -85,7 +94,7 @@
 
     function updateNode({title, content, color}: {
       title: Writable<string>;
-      content: Writable<Array<string>>;
+      content: Writable<string>;
       color: Writable<string>;
     }) {
       const titleVal = title;
@@ -101,6 +110,7 @@
                   ...node.data,
                   title: titleVal,
                   content: contentVal,
+                  localDelta: deltaInput,
                   color: colorVal
                 }
               };
@@ -108,19 +118,16 @@
             return node;
           });
         });
-        //console.log($content);
-        console.log($contentInput);
     }
-
 </script>
-<div class="updatenode__panel">
+<div class="updatenode__panel" bind:this={panelRef}>
     <label>Title:</label>
     <input bind:value={$title}/>
 
     <label class="updatenode__bglabel">Color:</label>
     <input type="color" bind:value={$color}/>
 
-    <div id="editor">
+    <div bind:this={editorElement} id="editor">
     </div>
 
   </div>
@@ -130,7 +137,7 @@
     position: absolute;
     left: 10px;
     top: 20%;
-    z-index: 10;
+    z-index: 10000000;
     font-size: 12px;
     background-color: #eee;
     width: 25%;
