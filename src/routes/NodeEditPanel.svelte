@@ -3,8 +3,8 @@
 	  import { get, writable, type Writable } from "svelte/store";
     import { nodes } from "./stores";
     import 'quill/dist/quill.snow.css';
-	import type Quill  from "quill";
-  import { onDestroy, onMount } from 'svelte';
+    import type Quill  from "quill";
+    import { onDestroy, onMount } from 'svelte';
   
     export let title: Writable<string> = writable('');
     export let id: string;
@@ -18,9 +18,11 @@
     let lastSelectedNodeId: string | null = null;
 
     let editorElement: HTMLDivElement | null = null;
+    let lineOwner: HTMLInputElement | null = null;
     export let panelRef: HTMLDivElement | null = null;
 
     onMount(() => {
+      //initialize quill
     if (typeof document !== 'undefined' && editorElement) {
       import('quill').then((module) => {
         const Quill = module.default;
@@ -29,21 +31,54 @@
           theme: 'snow',
           formats: ['italic', 'bold'],
           modules: {
-          toolbar: ['bold', 'italic']
+          toolbar: '#toolbar'
       }
         });
-
+        //load node delta
         const delta = get(deltaInput);
         quill.setContents(delta);
 
+        //set line owner for the first time
+        quill.once('text-change', () => {
+          if(quill){
+          let position = quill.getLength() - 1;
+          const lineOwnerContent = (document.getElementById("line-owner") as HTMLInputElement).value;
+          if(lineOwnerContent != ""){
+            const replaceString = lineOwnerContent + ': ';
+            quill.deleteText(position, 1);  
+            quill.insertText(position, replaceString); 
+            position += replaceString.length; 
+            quill.setSelection(position, 0); 
+            }
+                  }
+
+});
+        // manage quill content on change - save quill's content into editor vars and listen for enter to add line owner
         quill.on('text-change', () => {
           if (quill) {
-            const delta = quill.getContents();  
-            const html = quill.root.innerHTML; 
+            let delta = quill.getContents();  
+            let html = quill.root.innerHTML; 
             content.set(html);  
-            deltaInput.set(delta); 
+            deltaInput.set(delta);
           }
         });
+
+        const editorContainer = document.querySelector('#editor .ql-editor');
+        if (editorContainer) {
+          editorContainer.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && quill) {
+                let position = quill.getLength() - 1;
+                const lineOwnerContent = (document.getElementById("line-owner") as HTMLInputElement).value;
+                if(lineOwnerContent != ""){
+                  const replaceString = lineOwnerContent + ': ';
+                  quill.deleteText(position, 1);  
+                  quill.insertText(position, replaceString); 
+                  position += replaceString.length; 
+                  quill.setSelection(position, 0); 
+                }
+            }
+          });
+        }
       }
       });
     }
@@ -63,6 +98,7 @@
       }
 
     $: {
+      // constantly check whether the node was changed and load it's content into editor
         const unsubscribe = nodes.subscribe(nodeArray => {
         const selectedNode = nodeArray.find(node => node.id === id);
         if (selectedNode && selectedNode.id != lastSelectedNodeId) {
@@ -71,8 +107,8 @@
 
             const nodeData = selectedNode.data as NodeData;
             title = nodeData.title as Writable<string>;
-              content = nodeData.content as Writable<string>;
-                deltaInput = nodeData.delta as Writable<any>; 
+            content = nodeData.content as Writable<string>;
+            deltaInput = nodeData.delta as Writable<any>; 
             color =  nodeData.color as Writable<string>;
             lastSelectedNodeId = selectedNode.id;
             
@@ -92,6 +128,7 @@
 
     $: updateNode({ title, content, color });
 
+    // update node array with new values
     function updateNode({title, content, color}: {
       title: Writable<string>;
       content: Writable<string>;
@@ -127,6 +164,11 @@
     <label class="updatenode__bglabel">Color:</label>
     <input type="color" bind:value={$color}/>
 
+    <div id="toolbar">
+      <button class="ql-bold"></button>
+      <button class="ql-italic"></button>
+      <label>Line owner: </label><input type="text" id="line-owner" bind:this={lineOwner}/>
+    </div>
     <div bind:this={editorElement} id="editor">
     </div>
 
@@ -141,7 +183,7 @@
     font-size: 12px;
     background-color: #eee;
     width: 25%;
-    height: 50%;
+    height: 70%;
 }
   
     .updatenode__bglabel {
@@ -154,8 +196,13 @@
       align-items: center;
     }
 
-    textarea {
-		width: 100%;
-		height: 200px;
-	}
+    #line-owner {
+      height: 10px;
+      width: 30%;
+    }
+
+    #editor {
+      height: 80%;
+      overflow-y: auto;
+    }
   </style> 
