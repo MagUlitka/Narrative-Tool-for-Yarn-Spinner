@@ -1,32 +1,26 @@
 
 <script lang="ts">
-  import { writable } from 'svelte/store';
- import { SvelteFlow, Background, Controls, MiniMap} from '@xyflow/svelte';
- import '@xyflow/svelte/dist/style.css';
- import StoryNode from './StoryNode.svelte';
- import NodeMenu from './NodeMenu.svelte';
- import { Navbar, NavLi, NavUl, NavHamburger, Button} from 'flowbite-svelte';
+  import { SvelteFlow, Background, Controls, MiniMap } from '@xyflow/svelte';
+  import '@xyflow/svelte/dist/style.css';
+  import StoryNode from './StoryNode.svelte';
+  import NodeMenu from './NodeMenu.svelte';
+  import { Navbar, Button, TabItem, ToolbarGroup} from 'flowbite-svelte';
+  import type { Writable } from 'svelte/store';
+  import NodeEditPanel from './NodeEditPanel.svelte';
+  import { nodes, edges } from './stores';
 
- const nodeTypes = {
-   'story-node': StoryNode
- };
+  const nodeTypes = {
+    'story-node': StoryNode
+  };
 
- const nodes = writable([ {
-   id: '1', 
-   type: 'story-node',
-   position: { x: 0, y: 0 }, 
-   data: { title: 'default_title', content: Array()}, 
- },
- {
-   id: '2',
-   position: { x: 100, y: 100 },
-   data: { label: 'world' },
- },]);
- const edges = writable([]);
-
- let menu: { id: string; top?: number; left?: number; right?: number; bottom?: number } | null;
+  let menu: { id: string; top?: number; left?: number; right?: number; bottom?: number } | null;
   let width: number;
   let height: number;
+
+  let editPanel: {nodeId: string; nodeTitle: Writable<string>; deltaInput: Writable<any>; color: Writable<string>; content: Writable<string>} | null;
+
+  let editPanelRef: HTMLDivElement | null = null;
+
 
   function handleContextMenu({ detail: { event, node } }) {
     event.preventDefault();
@@ -40,8 +34,18 @@
     };
   }
 
-  function handlePaneClick() {
+  function handlePaneClick({ detail: { event } }) {
     menu = null;
+    let mouseEvent = event as MouseEvent;
+    if (editPanelRef && !editPanelRef.contains(mouseEvent.target as Node)) {
+      editPanel = null;
+    }
+    
+  }
+
+  function handleEditNode(event) {
+    const { id, title, delta, content, color } = event.detail;
+    editPanel = { nodeId: id, nodeTitle: title, deltaInput: delta, content: content, color: color };
   }
 
 </script>
@@ -63,7 +67,7 @@
       on:paneclick={handlePaneClick} fitView>
         <Background />
         <Controls />
-        <MiniMap nodeStrokeWidth={3} pannable zoomable/>
+        <MiniMap nodeStrokeWidth={3} pannable/>
         {#if menu}
         <NodeMenu
           onClick={handlePaneClick}
@@ -72,8 +76,13 @@
           left={menu.left}
           right={menu.right}
           bottom={menu.bottom}
+          on:editnode={handleEditNode}
         />
       {/if}
+      {#if editPanel}
+      <NodeEditPanel bind:panelRef={editPanelRef}
+      id={editPanel.nodeId} title={editPanel.nodeTitle} deltaInput={editPanel.delta} content={editPanel.content} color={editPanel.color} on:close={() => editPanel = null}/>
+          {/if}
       </SvelteFlow>  
     </div>
       </div>

@@ -1,45 +1,81 @@
 <script lang="ts">
-    import { useEdges, useNodes } from '@xyflow/svelte';
-  
-    export let onClick: () => void;
+    import { useEdges, useNodes, useNodesData } from '@xyflow/svelte';
+    import { get, writable, type Writable } from 'svelte/store';
+    import NodeData from "./StoryNode.svelte";
+    import { createEventDispatcher } from 'svelte';
+    import { createNode, nodes } from './stores';
+
+    export let onClick: ({ detail: { event } }) => void;
     export let id: string;
     export let top: number | undefined;
     export let left: number | undefined;
     export let right: number | undefined;
     export let bottom: number | undefined;
+
+    export let nodeTitle: Writable<string> = writable('');
+    export let nodeContent: Writable<string> = writable('');
+    export let nodeColor: Writable<string> = writable("#ffffff");
+    export let nodeType: string = '';
+    export let nodeDelta: Writable<any> = writable({});
+
+    const dispatch = createEventDispatcher();
+      $: {
+        nodes.subscribe(nodeArray => {
+          const selectedNode = nodeArray.find(node => node.id === id);
+          if (selectedNode) {
+             const nodeData = selectedNode.data as NodeData;
+             nodeType = selectedNode.type as string;
+             nodeTitle = nodeData.title as Writable<string>;
+             nodeContent =  nodeData.content as Writable<string>;
+             nodeColor =  nodeData.color as Writable<string>;
+             nodeDelta = nodeData.delta as Writable<any>;
+            }
+        })
+       
+    }
   
     const allNodes = useNodes();
-    const edges = useEdges();
+    const allEdges = useEdges();
     let lastId = $allNodes.at(-1)?.id == undefined ? 1 : $allNodes.at(-1)?.id;
 
-    console.log(lastId);
-  
     function duplicateNode() {
       const node = $allNodes.find((node) => node.id === id);
-      console.log(node);
       if (node) {
        let foundNode = $allNodes.find((node) => parseInt(node.id) == lastId);
-       console.log(foundNode);
-       console.log(lastId);
        if(foundNode) {
         lastId = parseInt(foundNode.id) + 1;
        }
-    console.log(lastId);
-        $allNodes.push({
-          ...node,
-          id: `${lastId}`,
-          position: {
-            x: node.position.x,
-            y: node.position.y + 50
-          }
-        });
+       const newNode = createNode(
+        nodeType, node.position.x + 100, node.position.y + 100, get(nodeTitle), get(nodeColor), get(nodeDelta), get(nodeContent))
+       
+        $allNodes.push(newNode);
       }
       $allNodes = $allNodes;
     }
     function deleteNode() {
       $allNodes = $allNodes.filter((node) => node.id !== id);
-      $edges = $edges.filter((edge) => edge.source !== id && edge.target !== id);
+      $allEdges = $allEdges.filter((edge) => edge.source !== id && edge.target !== id);
     }
+
+
+    //enables editPanel
+
+    function editNode() {
+
+      const node = $allNodes.find((node) => node.id === id);
+      if(node){
+        const title = nodeTitle;
+        const content = nodeContent;
+        const color = nodeColor;
+        const delta = nodeDelta;
+
+        const editPanelData = { id: node.id, nodeTitle: title, deltaInput: delta, content: content, color: color };
+        dispatch('editnode', editPanelData);
+        
+        $allNodes = $allNodes;
+
+  }
+}
   </script>
   
   <div
@@ -50,10 +86,11 @@
     <p style="margin: 0.5em;">
       <small>node: {id}</small>
     </p>
-    <button on:click={deleteNode}>edit</button>
+    <button on:click={editNode}>edit</button>
     <button on:click={duplicateNode}>duplicate</button>
     <button on:click={deleteNode}>delete</button>
   </div>
+ 
   
   <style>
     .context-menu {
