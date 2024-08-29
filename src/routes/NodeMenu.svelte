@@ -28,6 +28,7 @@
              nodeTitle = nodeData.title as Writable<string>;
              nodeContent =  nodeData.content as Writable<string>;
              nodeColor =  nodeData.color as Writable<string>;
+             nodeDelta = nodeData.delta as Writable<any>;
             }
         })
        
@@ -66,8 +67,9 @@
         const title = nodeTitle;
         const content = nodeContent;
         const color = nodeColor;
+        const delta = nodeDelta;
 
-        const editPanelData = { id: node.id, nodeTitle: title, delta: nodeDelta, content: content, color: color };
+        const editPanelData = { id: node.id, nodeTitle: title, deltaInput: delta, content: content, color: color };
         dispatch('editnode', editPanelData);
         
         $allNodes = $allNodes;

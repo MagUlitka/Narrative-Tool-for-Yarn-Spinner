@@ -10,7 +10,6 @@
     export let id: string;
     export let content: Writable<string> = writable('');
     export let color: Writable<string> = writable("#ffffff");
-
     export let deltaInput: Writable<any> = writable({});
 
     let quill:  Quill | null;
@@ -98,7 +97,7 @@
       }
 
     $: {
-      // constantly check whether the node was changed and load it's content into editor
+      // constantly check whether the node was changed and load its content into editor
         const unsubscribe = nodes.subscribe(nodeArray => {
         const selectedNode = nodeArray.find(node => node.id === id);
         if (selectedNode && selectedNode.id != lastSelectedNodeId) {
@@ -111,7 +110,6 @@
             deltaInput = nodeData.delta as Writable<any>; 
             color =  nodeData.color as Writable<string>;
             lastSelectedNodeId = selectedNode.id;
-            
 
               if (quill) {
                  const delta = get(deltaInput);

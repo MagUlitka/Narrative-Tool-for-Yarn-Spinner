@@ -17,7 +17,7 @@
   let width: number;
   let height: number;
 
-  let editPanel: {nodeId: string; nodeTitle: Writable<string>; color: Writable<string>; content: Writable<string>} | null;
+  let editPanel: {nodeId: string; nodeTitle: Writable<string>; deltaInput: Writable<any>; color: Writable<string>; content: Writable<string>} | null;
 
   let editPanelRef: HTMLDivElement | null = null;
 
@@ -44,8 +44,8 @@
   }
 
   function handleEditNode(event) {
-    const { id, title, content, color } = event.detail;
-    editPanel = { nodeId: id, nodeTitle: title, content: content, color: color };
+    const { id, title, delta, content, color } = event.detail;
+    editPanel = { nodeId: id, nodeTitle: title, deltaInput: delta, content: content, color: color };
   }
 
 </script>
@@ -81,7 +81,7 @@
       {/if}
       {#if editPanel}
       <NodeEditPanel bind:panelRef={editPanelRef}
-      id={editPanel.nodeId} title={editPanel.nodeTitle} content={editPanel.content} color={editPanel.color} on:close={() => editPanel = null}/>
+      id={editPanel.nodeId} title={editPanel.nodeTitle} deltaInput={editPanel.delta} content={editPanel.content} color={editPanel.color} on:close={() => editPanel = null}/>
           {/if}
       </SvelteFlow>  
     </div>
