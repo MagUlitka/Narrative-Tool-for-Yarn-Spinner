@@ -1,6 +1,10 @@
 import { writable } from "svelte/store";
 import type { Node } from '@xyflow/svelte'; 
 
+type NodeReference = {
+  nodeRef: HTMLDivElement | null;
+};
+
 
 let lastId = 0;
 
@@ -30,31 +34,7 @@ export const nodes = writable<Node[]>([
   createNode('story-node', 200, 200, 'New Node2', '#eeeeee', {}, '')
 ]);
 
-
-function addNode() {
-  nodes.subscribe(allNodes => {
-    const newNode = createNode(
-      'story-node',    
-      100,             
-      100,             
-      'New Node',      
-      '#ffffff',
-      {},      
-      ''               
-    );
-
-    nodes.set([
-      ...allNodes,
-      {
-        ...newNode,
-        position: {
-          x: newNode.position.x + 100,
-          y: newNode.position.y + 100
-        }
-      }
-    ]);
-  });
-}
+export const nodeRefs = writable<NodeReference[]>([]);
 
 export const edges = writable([]);
 

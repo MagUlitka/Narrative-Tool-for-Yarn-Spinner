@@ -1,18 +1,14 @@
 <script lang="ts">
     import { Handle, Position, NodeResizer, type NodeProps } from '@xyflow/svelte';
     import {type Writable } from 'svelte/store';
+    import { nodeRefs } from './stores';
+	import { onDestroy, onMount } from 'svelte';
     type $Props = NodeProps;
 
     type Line = {
     owner: Writable<string>;
     lineContent: Writable<string>;
     };
-
-    type Variable = {
-      name: Writable<string>;
-      type: Writable<string>;
-      value: Writable<any>;
-    }
 
     type NodeData = {
         title: Writable<string>;
@@ -28,6 +24,15 @@
     export let localColor: string = '#ffffff'; 
     export let selected: $Props['selected'] = undefined;
 
+
+    export let nodeRef: HTMLDivElement | null = null;
+
+    onMount(() => {
+      if(nodeRef){
+  nodeRefs.update(refs => [...refs, { nodeRef }]);
+      }
+});
+
     $: {
         data.title.subscribe(value => localTitle = value);
         data.color.subscribe(value => localColor = value);
@@ -38,7 +43,7 @@
     $$restProps;
   </script>
    
-  <div class="storynode" style="background-color: {localColor}">
+  <div class="storynode" style="background-color: {localColor}"  bind:this={nodeRef}>
     <NodeResizer minWidth={100} minHeight={100} isVisible={selected} />
     <Handle type="target" position={Position.Top} />
     <div>

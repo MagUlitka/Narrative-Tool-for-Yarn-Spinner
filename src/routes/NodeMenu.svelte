@@ -1,12 +1,13 @@
 <script lang="ts">
-    import { useEdges, useNodes, useNodesData } from '@xyflow/svelte';
+    import { useEdges, useNodes, useNodesData, useSvelteFlow } from '@xyflow/svelte';
     import { get, writable, type Writable } from 'svelte/store';
     import NodeData from "./StoryNode.svelte";
     import { createEventDispatcher } from 'svelte';
     import { createNode, nodes } from './stores';
+    import fitView from './+page.svelte';
 
     export let onClick: ({ detail: { event } }) => void;
-    export let id: string;
+    export let id: string = '0';
     export let top: number | undefined;
     export let left: number | undefined;
     export let right: number | undefined;
@@ -76,6 +77,25 @@
 
   }
 }
+
+  function addNode(event) {
+    if(left && top){
+    const newNode = createNode(event.target.value, 200, 200, 'default-title', '#eeeeee',{}, '');
+    $allNodes.push(newNode);
+    $allNodes = $allNodes;
+
+    // const { zoomIn, zoomOut, setZoom, fitView, setCenter, setViewport, getViewport, viewport } =
+    // useSvelteFlow();
+
+   
+
+    // setViewport({x: left, y: top, zoom: 2});
+    
+
+
+    }
+
+  }
   </script>
   
   <div
@@ -83,12 +103,17 @@
     class="context-menu"
     on:click={onClick}
   >
+    {#if id == '0'}
+    <button on:click={(event) => addNode(event)} value="story-node">add story node</button>
+    <button disabled on:click={(event) => addNode(event)} value="choice-node">add choice node</button>
+    {:else}
     <p style="margin: 0.5em;">
       <small>node: {id}</small>
     </p>
     <button on:click={editNode}>edit</button>
     <button on:click={duplicateNode}>duplicate</button>
     <button on:click={deleteNode}>delete</button>
+    {/if}
   </div>
  
   
