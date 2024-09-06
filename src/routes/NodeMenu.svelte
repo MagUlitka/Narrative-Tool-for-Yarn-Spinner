@@ -83,16 +83,10 @@
     const newNode = createNode(event.target.value, 200, 200, 'default-title', '#eeeeee',{}, '');
     $allNodes.push(newNode);
     $allNodes = $allNodes;
-
     // const { zoomIn, zoomOut, setZoom, fitView, setCenter, setViewport, getViewport, viewport } =
     // useSvelteFlow();
 
-   
-
     // setViewport({x: left, y: top, zoom: 2});
-    
-
-
     }
 
   }

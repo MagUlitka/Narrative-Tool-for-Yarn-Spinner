@@ -1,9 +1,30 @@
-import { writable } from "svelte/store";
+import { writable, type Writable } from "svelte/store";
 import type { Node } from '@xyflow/svelte'; 
 
 type NodeReference = {
   nodeRef: HTMLDivElement | null;
 };
+
+export type Variable = {
+  name: Writable<string>;
+  type: Writable<string>;
+  declaredValue: Writable<any>;
+  currentValue: Writable<any>;
+  isEdited: Writable<boolean>;
+}
+
+export type Condition = {
+  number: number;
+  var1Type: string;
+  var1: any;
+  comparison: string;
+  var2Type: string;
+  var2: any;
+  funcArgs1: Array<any>;
+  funcArgs2: Array<any>;
+  logicOp?: string;
+
+}
 
 
 let lastId = 0;
@@ -37,5 +58,8 @@ export const nodes = writable<Node[]>([
 export const nodeRefs = writable<NodeReference[]>([]);
 
 export const edges = writable([]);
+
+export let variables: Writable<Array<Variable>> = writable([]);
+export let conditions: Writable<Array<Condition>> = writable([]);
 
 

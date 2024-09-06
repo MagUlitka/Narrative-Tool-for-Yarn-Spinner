@@ -1,16 +1,9 @@
 <script lang="ts">
 	import { get, writable, type Writable } from "svelte/store";
     import { Button, AccordionItem, Accordion, Radio, Select, Label, Input, CloseButton, Heading, P, A, Mark, Secondary, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
-
-    type Variable = {
-        name: Writable<string>;
-        type: Writable<string>;
-        declaredValue: Writable<any>;
-        currentValue: Writable<any>;
-        isEdited: boolean;
-    }
-
-    export let variables: Writable<Array<Variable>> = writable([]);
+    import  isGlobalMode  from "./+page.svelte";
+    import { type Variable } from "./stores";
+    import { variables } from "./stores";
 
     let selectedOption: string;
     export let visible: boolean = true;
@@ -27,33 +20,46 @@
             type: writable(type),
             declaredValue: writable(declaredValue),
             currentValue: writable(declaredValue),
-            isEdited: false
+            isEdited: writable(false)
         }
         }
 
     variables.update((currentArray) => {
-		currentArray.push(createVariable("playerName","string","Player"));
+		currentArray.push(createVariable("playerName","text","Player"));
 		return currentArray;
 	});
 
     function declareVariable(){
-        if(selectedOption == "radio"){
+        if(selectedOption == "true/false"){
             newValue = selectedRadio;
         }
         variables.update((currentArray) => {
+            if(currentArray.find(variable => get(variable.name) != newName)){
 		currentArray.push(createVariable(newName,selectedOption,newValue));
+        newName = "";
+        newValue = "";
+            }
 		return currentArray;
 	});
 
     }
 
     function editVariable(variable: Variable){
-        variable.name.set(newName);
-        variable.type.set(selectedOption);
-        variable.declaredValue.set(newValue);
-        variable.isEdited = false;
-        isEdited = false;
-        
+        variables.subscribe((currentArray) => {
+            if(currentArray.find(variable => get(variable.name) != newName)){
+                variable.name.set(newName);
+                variable.type.set(selectedOption);
+                if(selectedOption == "true/false"){
+                    newValue = selectedRadio;
+                }
+                variable.declaredValue.set(newValue);
+                variable.isEdited.set(false);
+                isEdited = false;
+                newName = "";
+                newValue = "";
+            }
+        });
+         
     }
 
     function deleteVariable(variable: Variable){
@@ -88,14 +94,18 @@
             <TableBody tableBodyClass="divide-y">
     {#each get(variables) as variable}
     <TableBodyRow>
-        {#if !variable.isEdited}
+        {#if !get(variable.isEdited) || !isEdited}
         <TableBodyCell>{get(variable.name)}</TableBodyCell>
         <TableBodyCell>{get(variable.type)}</TableBodyCell>
+        {#if !isGlobalMode}
         <TableBodyCell>{get(variable.currentValue)}</TableBodyCell>
+        {:else}
+        <TableBodyCell>{get(variable.declaredValue)}</TableBodyCell>
+        {/if}
         <TableBodyCell>
           <a class="font-medium text-primary-600 hover:underline dark:text-primary-500" on:click={() => {
             isEdited = true;
-            variable.isEdited = true;
+            variable.isEdited.set(true);
             newName = get(variable.name);
             selectedOption = get(variable.type);
             newValue = get(variable.declaredValue);
@@ -110,11 +120,11 @@
             <Select class="mt-2" id="variableType" style="" bind:value={selectedOption}>
                 <option value="text" selected>word</option>
                 <option value="number">number</option>
-                <option value="radio">true/false</option>
+                <option value="true/false">true/false</option>
             </Select></TableBodyCell>
             <TableBodyCell>
                 <Label for="small-input">Value: </Label>
-    {#if selectedOption == "radio"}
+    {#if selectedOption == "true/false"}
     <label>True </label><Radio checked={true} name="variableValue" value="true" bind:group={selectedRadio}/><label>False </label><Radio name="variableValue" value="false" bind:group={selectedRadio}/>
     {:else if selectedOption == "text"}
     <Input id="variableValue" name="variableValue" style="" type="text" bind:value={newValue}/>
@@ -139,10 +149,10 @@
     <Select class="mt-2" id="variableType" style="width: 35%; display: inline-block;" bind:value={selectedOption}>
         <option value="text" selected>word</option>
         <option value="number">number</option>
-        <option value="radio">true/false</option>
+        <option value="true/false">true/false</option>
     </Select>
     <Label for="small-input">Value: </Label>
-    {#if selectedOption == "radio"}
+    {#if selectedOption == "true/false"}
     <label>True </label><Radio checked={true} name="variableValue" value="true" bind:group={selectedRadio}/><label>False </label><Radio name="variableValue" value="false" bind:group={selectedRadio}/>
     {:else if selectedOption == "text"}
     <Input id="variableValue" name="variableValue" style="width: 30%;" type="text" bind:value={newValue}/>
@@ -161,7 +171,10 @@
     padding: 10px;
     width: 100%;
     text-align: center;
-" on:click={() => (visible = false)}>X Close</button>
+" on:click={() => {visible = false;
+    isEdited = false;
+    newName = "";
+    newValue = "";}}>X Close</button>
   </div>
 {/if}
   <style>

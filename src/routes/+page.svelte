@@ -24,9 +24,11 @@
 
   let editPanelRef: HTMLDivElement | null = null;
 
+  export let isGlobalMode: boolean = true;
+
   function handleContextMenu({ detail: { event, node } }) {
     event.preventDefault();
-
+    isGlobalMode = false;
     menu = {
       id: node.id,
       top: event.clientY < height - 200 ? event.clientY : undefined,
@@ -57,6 +59,7 @@
     }
     else {
       menu = null;
+      isGlobalMode = true;
     if (editPanelRef && !editPanelRef.contains(event.target as Node) && !target) {
       editPanel = null;
     }
