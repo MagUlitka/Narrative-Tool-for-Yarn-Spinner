@@ -1,5 +1,5 @@
 import { writable, type Writable } from "svelte/store";
-import type { Node } from '@xyflow/svelte'; 
+import type { Node } from '@xyflow/svelte';
 
 type NodeReference = {
   nodeRef: HTMLDivElement | null;
@@ -52,7 +52,7 @@ export const nodes = writable<Node[]>([
   createNode('story-node', 100, 100, 'New Node1', '#ffffff', {ops: [
     { insert: 'aaaaa'}
   ]},'aaaaa'), 
-  createNode('story-node', 200, 200, 'New Node2', '#eeeeee', {}, '')
+  createNode('choice-node', 200, 200, 'New Node2', '#454545', {}, '')
 ]);
 
 export const nodeRefs = writable<NodeReference[]>([]);
@@ -61,5 +61,8 @@ export const edges = writable([]);
 
 export let variables: Writable<Array<Variable>> = writable([]);
 export let conditions: Writable<Array<Condition>> = writable([]);
+export let focusedNodeContent: Writable<string> = writable("");
+export let isGlobalMode: Writable<boolean> = writable(true);
+
 
 

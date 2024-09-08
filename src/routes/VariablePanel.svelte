@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { get, writable, type Writable } from "svelte/store";
     import { Button, AccordionItem, Accordion, Radio, Select, Label, Input, CloseButton, Heading, P, A, Mark, Secondary, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
-    import  isGlobalMode  from "./+page.svelte";
-    import { type Variable } from "./stores";
+    import { isGlobalMode, type Variable } from "./stores";
     import { variables } from "./stores";
 
     let selectedOption: string;
@@ -92,12 +91,12 @@
             </TableHead>
             
             <TableBody tableBodyClass="divide-y">
-    {#each get(variables) as variable}
+    {#each $variables as variable}
     <TableBodyRow>
         {#if !get(variable.isEdited) || !isEdited}
         <TableBodyCell>{get(variable.name)}</TableBodyCell>
         <TableBodyCell>{get(variable.type)}</TableBodyCell>
-        {#if !isGlobalMode}
+        {#if !$isGlobalMode}
         <TableBodyCell>{get(variable.currentValue)}</TableBodyCell>
         {:else}
         <TableBodyCell>{get(variable.declaredValue)}</TableBodyCell>

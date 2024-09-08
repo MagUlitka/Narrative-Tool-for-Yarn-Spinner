@@ -4,24 +4,16 @@
     import { focusedNodeContent, isGlobalMode, nodeRefs, variables } from './stores';
 	import { onDestroy, onMount } from 'svelte';
     type $Props = NodeProps;
-
-    type Line = {
-    owner: Writable<string>;
-    lineContent: Writable<string>;
-    };
-
     type NodeData = {
-        title: Writable<string>;
         color: Writable<string>;
         content: Writable<string>;
         delta: Writable<any>;
     };
 
     export let data: NodeData;
-    export let localTitle: string = ''; 
     export let localContent: string = ''; 
     export let localDelta: any = {};
-    export let localColor: string = '#ffffff'; 
+    export let localColor: string = '#454545'; 
     export let selected: $Props['selected'] = undefined;
 
 
@@ -34,7 +26,6 @@
 });
 
     $: {
-        data.title.subscribe(value => localTitle = value);
         data.color.subscribe(value => localColor = value);
         data.content.subscribe(value => localContent = value);
         data.delta.subscribe(value => localDelta = value);
@@ -68,15 +59,14 @@
 
   </script>
    
-  <div class="storynode" style="background-color: {localColor}"  bind:this={nodeRef} on:click={() => {isGlobalMode.set(false);
+  <div class="choicenode" style="background-color: {localColor}"  bind:this={nodeRef} on:click={() => {isGlobalMode.set(false);
     focusedNodeContent.set(get(data.content));
     setCurrentValues();
   }}>
     <NodeResizer minWidth={100} minHeight={100} isVisible={selected} />
     <Handle type="target" position={Position.Top} />
     <div>
-    title: <strong>{localTitle}</strong><br>
-    <div class="storynode__content">
+    <div class="choicenode__content">
       {@html localContent}
     </div>
     </div>
@@ -84,13 +74,13 @@
   </div>
 
   <style>
-    .storynode {
+    .choicenode {
       padding: 10px;
       width: 100%;
       height: 100%;
     }
     
-    .storynode__content {
+    .choicenode__content {
       white-space: pre-wrap;
     }
   </style>
