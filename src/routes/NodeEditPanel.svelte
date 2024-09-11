@@ -19,6 +19,7 @@
     let quill:  Quill | null;
 
     let lastSelectedNodeId: string | null = null;
+    let selectedNode: any;
 
     let editorElement: HTMLDivElement | null = null;
     let lineOwner: HTMLInputElement | null = null;
@@ -55,6 +56,7 @@
         quill.once('text-change', () => {
           if(quill){
           let position = quill.getLength() - 1;
+          if(selectedNode == "story-node"){
           const lineOwnerContent = (document.getElementById("line-owner") as HTMLInputElement).value;
           if(lineOwnerContent != ""){
             const replaceString = lineOwnerContent + ': ';
@@ -63,6 +65,7 @@
             position += replaceString.length; 
             quill.setSelection(position, 0); 
             }
+          }
                   }
 
 });
@@ -105,16 +108,16 @@
     }
   });
 
-    type Node = {
-      id: string;
-      data: NodeData;
-      position: { x: number; y: number };
-      }
+    // type Node = {
+    //   id: string;
+    //   data: NodeData;
+    //   position: { x: number; y: number };
+    //   }
 
     $: {
       // constantly check whether the node was changed and load its content into editor
         const unsubscribe = nodes.subscribe(nodeArray => {
-        const selectedNode = nodeArray.find(node => node.id === id);
+        selectedNode = nodeArray.find(node => node.id === id);
         if (selectedNode && selectedNode.id != lastSelectedNodeId) {
           lastSelectedNodeId = selectedNode.id;
 
@@ -143,10 +146,15 @@
                       quill.focus();
                       position = quill.getSelection();
                     }
+                    if(selectedOption == "if" && selectedNode.type == "choice-node"){
+                      quill.insertText(quill.getLength(), functionalLine); 
+                    }
+                    else {
                     quill.insertText(position.index, functionalLine); 
+                    }
                     addFunctionEnds = false;
                     functionalLine = "";
-                    if(selectedOption == "if"){
+                    if(selectedOption == "if" && selectedNode.type == "story-node"){
                       quill.setSelection(quill.getLength()-11,0);
                     }
                   }
@@ -233,7 +241,12 @@
             }
             
           });
+          if(selectedNode.type == "story-node"){
           functionalLine = "<<if " + joinedConditions + ">>" + "\n\n<<endif>>";
+          }
+          else {
+            functionalLine = "<<if " + joinedConditions + ">>";
+          }
           conditions.update((currentArray) => {
           currentArray = [];
           return currentArray;
@@ -304,8 +317,10 @@
     }
 </script>
 <div class="updatenode__panel" bind:this={panelRef}>
+  {#if selectedNode && selectedNode.type != "choice-node"}
     <label>Title:</label>
     <input bind:value={$title}/>
+    {/if}
 
     <label class="updatenode__bglabel">Color:</label>
     <input type="color" bind:value={$color}/>
@@ -313,10 +328,14 @@
     <Button on:click={() => (addFunctionClicked = true)}>+ Add functional line</Button>
     {#if addFunctionClicked}
     <select bind:value={selectedOption}>
+      {#if selectedNode && selectedNode.type != "choice-node"}
       <option value="set" selected>set variable</option>
+      {/if}
       <option value="if">add condition block</option>
+      {#if selectedNode && selectedNode.type != "choice-node"}
       <option value="elseif">add another scenario</option>
       <option value="else">add alternative (else)</option>
+      {/if}
   </select>
 
   {#if selectedOption == "set"}
@@ -347,7 +366,9 @@
     <div id="toolbar">
       <button class="ql-bold"></button>
       <button class="ql-italic"></button>
+      {#if selectedNode && selectedNode.type != "choice-node"}
       <label>Line owner: </label><input type="text" id="line-owner" bind:this={lineOwner}/>
+      {/if}
     </div>
     <div bind:this={editorElement} id="editor">
     </div>

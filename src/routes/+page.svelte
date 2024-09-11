@@ -1,6 +1,6 @@
 
 <script lang="ts">
-  import { SvelteFlow, Background, Controls, MiniMap } from '@xyflow/svelte';
+  import { SvelteFlow, Background, Controls, MiniMap, useEdges } from '@xyflow/svelte';
   import '@xyflow/svelte/dist/style.css';
   import StoryNode from './StoryNode.svelte';
   import ChoiceNode from './ChoiceNode.svelte';
@@ -25,7 +25,6 @@
   let height: number;
 
   let editPanel: {nodeId: string; nodeTitle: Writable<string>; deltaInput: Writable<any>; color: Writable<string>; content: Writable<string>} | null;
-  let editChoicePanel: {nodeId: string; deltaInput: Writable<any>; color: Writable<string>; content: Writable<string>} | null;
 
   let editPanelRef: HTMLDivElement | null = null;
 
@@ -99,10 +98,12 @@
 
   function handleEditNode(event) {
     const { id, title, delta, content, color } = event.detail;
-    if(title == undefined){
-      editChoicePanel = { nodeId: id, deltaInput: delta, content: content, color: color };
-    }
     editPanel = { nodeId: id, nodeTitle: title, deltaInput: delta, content: content, color: color };
+  }
+
+  function deleteEdge(event){
+    const id  = event.detail.edge.id;
+    $edges = $edges.filter((edge) => edge.id !== id);
   }
 
 
@@ -121,7 +122,7 @@
           </div>
     <div id="svelteCanvas" bind:clientWidth={width} bind:clientHeight={height}>
       <SvelteFlow {nodes} {edges} {nodeTypes} colorMode="dark" on:nodecontextmenu={handleContextMenu}
-      on:paneclick={(event) => handlePaneClick(event)}  on:contextmenu={(event) => handlePaneClick(event)} fitView>
+      on:paneclick={(event) => handlePaneClick(event)}  on:contextmenu={(event) => handlePaneClick(event)} fitView defaultEdgeOptions={{deletable: true}} on:edgeclick={deleteEdge}>
         <Background />
         <Controls />
         <MiniMap nodeStrokeWidth={3} pannable/>

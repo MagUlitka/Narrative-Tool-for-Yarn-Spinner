@@ -1,5 +1,5 @@
 import { writable, type Writable } from "svelte/store";
-import type { Node } from '@xyflow/svelte';
+import { getIncomers, type Edge, type Node } from '@xyflow/svelte';
 
 type NodeReference = {
   nodeRef: HTMLDivElement | null;
@@ -34,35 +34,38 @@ function getNextId(): number {
   return lastId;
 }
 
-export function createNode(type: string, x: number, y: number, title: string, color: string, delta: any, content: string): Node {
+export function createNode(type: string, x: number, y: number, color: string, delta: any, content: string, title?: string): Node {
+  const newId = `${getNextId()}`;
   return {
-    id: `${getNextId()}`,
+    id: newId,
     type,
     position: { x, y },
     data: {
       title: writable(title),
       color: writable(color),
       delta: writable(delta),
-      content: writable(content)
+      content: writable(content),
+      nodeId: newId,
+      outgoers: null
     }
   };
 }
 
 export const nodes = writable<Node[]>([ 
-  createNode('story-node', 100, 100, 'New Node1', '#ffffff', {ops: [
+  createNode('story-node', 100, 100, '#ffffff', {ops: [
     { insert: 'aaaaa'}
-  ]},'aaaaa'), 
-  createNode('choice-node', 200, 200, 'New Node2', '#454545', {}, '')
+  ]},'aaaaa', 'New Node1'), 
+  createNode('choice-node', 200, 200, '#454545', {ops: [
+    { insert: 'How could I lie to you?'}
+  ]}, 'How could I lie to you?')
 ]);
 
 export const nodeRefs = writable<NodeReference[]>([]);
-
-export const edges = writable([]);
+export const edges = writable<Edge[]>([]);
 
 export let variables: Writable<Array<Variable>> = writable([]);
 export let conditions: Writable<Array<Condition>> = writable([]);
 export let focusedNodeContent: Writable<string> = writable("");
 export let isGlobalMode: Writable<boolean> = writable(true);
-
 
 

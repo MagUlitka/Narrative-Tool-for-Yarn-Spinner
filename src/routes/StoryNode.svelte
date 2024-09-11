@@ -1,20 +1,18 @@
 <script lang="ts">
-    import { Handle, Position, NodeResizer, type NodeProps } from '@xyflow/svelte';
+    import { Position, NodeResizer, type NodeProps, getOutgoers} from '@xyflow/svelte';
     import {get, type Writable } from 'svelte/store';
-    import { focusedNodeContent, isGlobalMode, nodeRefs, variables } from './stores';
+    import { edges, focusedNodeContent, isGlobalMode, nodeRefs, nodes, variables } from './stores';
 	import { onDestroy, onMount } from 'svelte';
+	import CustomHandle from './CustomHandle.svelte';
     type $Props = NodeProps;
-
-    type Line = {
-    owner: Writable<string>;
-    lineContent: Writable<string>;
-    };
 
     type NodeData = {
         title: Writable<string>;
         color: Writable<string>;
         content: Writable<string>;
         delta: Writable<any>;
+        nodeId: string;
+        outgoers: Node[];
     };
 
     export let data: NodeData;
@@ -24,8 +22,8 @@
     export let localColor: string = '#ffffff'; 
     export let selected: $Props['selected'] = undefined;
 
-
     export let nodeRef: HTMLDivElement | null = null;
+
 
     onMount(() => {
       if(nodeRef){
@@ -38,6 +36,7 @@
         data.color.subscribe(value => localColor = value);
         data.content.subscribe(value => localContent = value);
         data.delta.subscribe(value => localDelta = value);
+        data.outgoers = getOutgoers({ id: data.nodeId }, $nodes, $edges);
     }
 
     $$restProps;
@@ -65,7 +64,6 @@
         focusedNodeContent.set(get(data.content));
         setCurrentValues();
     }
-
   </script>
    
   <div class="storynode" style="background-color: {localColor}"  bind:this={nodeRef} on:click={() => {isGlobalMode.set(false);
@@ -73,14 +71,16 @@
     setCurrentValues();
   }}>
     <NodeResizer minWidth={100} minHeight={100} isVisible={selected} />
-    <Handle type="target" position={Position.Top} />
+    <CustomHandle handleType="target" position={Position.Top} data={data}></CustomHandle>
     <div>
     title: <strong>{localTitle}</strong><br>
     <div class="storynode__content">
       {@html localContent}
     </div>
     </div>
-    <Handle type="source" position={Position.Bottom} />
+    <div>
+      <CustomHandle handleType="source" position={Position.Bottom} data={data}></CustomHandle>
+  </div>
   </div>
 
   <style>
