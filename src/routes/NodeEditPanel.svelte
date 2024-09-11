@@ -1,10 +1,14 @@
 <script lang="ts" module="">
     import NodeData from "./StoryNode.svelte";
 	  import { get, writable, type Writable } from "svelte/store";
-    import { nodes } from "./stores";
+    import { conditions, nodes } from "./stores";
     import 'quill/dist/quill.snow.css';
     import type Quill  from "quill";
     import { onDestroy, onMount } from 'svelte';
+    import { type Variable } from "./stores";
+    import { variables } from "./stores";
+	import { Button, Input, Label, Radio, Select} from "flowbite-svelte";
+	import ConditionSetter from "./ConditionSetter.svelte";
   
     export let title: Writable<string> = writable('');
     export let id: string;
@@ -15,10 +19,21 @@
     let quill:  Quill | null;
 
     let lastSelectedNodeId: string | null = null;
+    let selectedNode: any;
 
     let editorElement: HTMLDivElement | null = null;
     let lineOwner: HTMLInputElement | null = null;
     export let panelRef: HTMLDivElement | null = null;
+
+    let addFunctionClicked = false;
+    let selectedOption: string = "";
+    let addFunctionEnds: boolean = false;
+    let functionalLine: string = "";
+
+    let chosenVariable: Variable;
+    let newValue: any;
+    let selectedRadio: string;
+
 
     onMount(() => {
       //initialize quill
@@ -41,6 +56,7 @@
         quill.once('text-change', () => {
           if(quill){
           let position = quill.getLength() - 1;
+          if(selectedNode == "story-node"){
           const lineOwnerContent = (document.getElementById("line-owner") as HTMLInputElement).value;
           if(lineOwnerContent != ""){
             const replaceString = lineOwnerContent + ': ';
@@ -49,6 +65,7 @@
             position += replaceString.length; 
             quill.setSelection(position, 0); 
             }
+          }
                   }
 
 });
@@ -78,6 +95,7 @@
             }
           });
         }
+
       }
       });
     }
@@ -90,18 +108,17 @@
     }
   });
 
-    type Node = {
-      id: string;
-      data: NodeData;
-      position: { x: number; y: number };
-      }
+    // type Node = {
+    //   id: string;
+    //   data: NodeData;
+    //   position: { x: number; y: number };
+    //   }
 
     $: {
       // constantly check whether the node was changed and load its content into editor
         const unsubscribe = nodes.subscribe(nodeArray => {
-        const selectedNode = nodeArray.find(node => node.id === id);
+        selectedNode = nodeArray.find(node => node.id === id);
         if (selectedNode && selectedNode.id != lastSelectedNodeId) {
-
           lastSelectedNodeId = selectedNode.id;
 
             const nodeData = selectedNode.data as NodeData;
@@ -122,6 +139,25 @@
         }
         return () => unsubscribe();
         })
+        // write functionalLine into editor
+                  if (quill && addFunctionEnds){
+                    let position = quill.getSelection();
+                    if(!position){
+                      quill.focus();
+                      position = quill.getSelection();
+                    }
+                    if(selectedOption == "if" && selectedNode.type == "choice-node"){
+                      quill.insertText(quill.getLength(), functionalLine); 
+                    }
+                    else {
+                    quill.insertText(position.index, functionalLine); 
+                    }
+                    addFunctionEnds = false;
+                    functionalLine = "";
+                    if(selectedOption == "if" && selectedNode.type == "story-node"){
+                      quill.setSelection(quill.getLength()-11,0);
+                    }
+                  }
     }
 
     $: updateNode({ title, content, color });
@@ -154,18 +190,185 @@
           });
         });
     }
+
+    function addFunctionalLine(){
+      switch(selectedOption){
+        case "set": {
+          if(selectedRadio == "true" || selectedRadio == "false"){
+            newValue = selectedRadio;
+        }
+          functionalLine = "<<set $" + chosenVariable + " to " + newValue + ">>";
+          addFunctionEnds = true;
+          break;
+        }
+        case "if": {
+          let joinedConditions = "";
+          $conditions.forEach(condition => {
+            if(condition.var1Type == "variable"){
+          joinedConditions = joinedConditions + "($" + get(condition.var1.name) + " " + condition.comparison + " ";
+            }
+            else {
+              let functionArgs = "";
+              let argsLen = condition.funcArgs1.length;
+              condition.funcArgs1.forEach(arg => {
+                functionArgs = functionArgs + arg;
+                if(arg !== condition.funcArgs1[argsLen-1]){
+                  functionArgs = functionArgs + ", ";
+                }     
+              });
+              joinedConditions = joinedConditions + "(" + condition.var1 + "(" + functionArgs + ") " + condition.comparison + " ";
+
+            }
+            if(condition.var2Type == "variable"){
+              joinedConditions = joinedConditions + "$" + condition.var2 + ")";
+            }
+            else if(condition.var2Type == "value"){
+              joinedConditions = joinedConditions + condition.var2 + ")";
+            }
+            else {
+              let functionArgs = "";
+              let argsLen = condition.funcArgs2.length;
+              condition.funcArgs2.forEach(arg => {
+                functionArgs = functionArgs + arg;
+                if(arg !== condition.funcArgs2[argsLen-1]){
+                  functionArgs = functionArgs + ", ";
+                }     
+              });
+              joinedConditions = joinedConditions + condition.var2 + "(" + functionArgs + "))";
+            }
+            if(condition.number != $conditions.length){
+              joinedConditions = joinedConditions + " " + condition.logicOp + " ";
+            }
+            
+          });
+          if(selectedNode.type == "story-node"){
+          functionalLine = "<<if " + joinedConditions + ">>" + "\n\n<<endif>>";
+          }
+          else {
+            functionalLine = "<<if " + joinedConditions + ">>";
+          }
+          conditions.update((currentArray) => {
+          currentArray = [];
+          return currentArray;
+	});
+          addFunctionEnds = true;
+          break;
+
+        }
+        case "elseif": {
+          let joinedConditions = "";
+          $conditions.forEach(condition => {
+            if(condition.var1Type == "variable"){
+          joinedConditions = joinedConditions + "($" + get(condition.var1.name) + " " + condition.comparison + " ";
+            }
+            else {
+              let functionArgs = "";
+              let argsLen = condition.funcArgs1.length;
+              condition.funcArgs1.forEach(arg => {
+                functionArgs = functionArgs + arg;
+                if(arg !== condition.funcArgs1[argsLen-1]){
+                  functionArgs = functionArgs + ", ";
+                }     
+              });
+              joinedConditions = joinedConditions + "(" + condition.var1 + "(" + functionArgs + ") " + condition.comparison + " ";
+
+            }
+            if(condition.var2Type == "variable"){
+              joinedConditions = joinedConditions + "$" + condition.var2 + ")";
+            }
+            else if(condition.var2Type == "value"){
+              joinedConditions = joinedConditions + condition.var2 + ")";
+            }
+            else {
+              let functionArgs = "";
+              let argsLen = condition.funcArgs2.length;
+              condition.funcArgs2.forEach(arg => {
+                functionArgs = functionArgs + arg;
+                if(arg !== condition.funcArgs2[argsLen-1]){
+                  functionArgs = functionArgs + ", ";
+                }     
+              });
+              joinedConditions = joinedConditions + condition.var2 + "(" + functionArgs + "))";
+            }
+            if(condition.number != $conditions.length){
+              joinedConditions = joinedConditions + " " + condition.logicOp + " ";
+            }
+            
+          });
+          functionalLine = "<<elseif " + joinedConditions + ">>";
+          conditions.update((currentArray) => {
+          currentArray = [];
+          return currentArray;
+	});
+          addFunctionEnds = true;
+          break;
+
+        }
+        case "else": {
+          functionalLine = "<<else>>";
+          addFunctionEnds = true;
+          break;
+
+        }
+        default: { 
+      break; 
+        } 
+      }
+    }
 </script>
 <div class="updatenode__panel" bind:this={panelRef}>
+  {#if selectedNode && selectedNode.type != "choice-node"}
     <label>Title:</label>
     <input bind:value={$title}/>
+    {/if}
 
     <label class="updatenode__bglabel">Color:</label>
     <input type="color" bind:value={$color}/>
 
+    <Button on:click={() => (addFunctionClicked = true)}>+ Add functional line</Button>
+    {#if addFunctionClicked}
+    <select bind:value={selectedOption}>
+      {#if selectedNode && selectedNode.type != "choice-node"}
+      <option value="set" selected>set variable</option>
+      {/if}
+      <option value="if">add condition block</option>
+      {#if selectedNode && selectedNode.type != "choice-node"}
+      <option value="elseif">add another scenario</option>
+      <option value="else">add alternative (else)</option>
+      {/if}
+  </select>
+
+  {#if selectedOption == "set"}
+  <Select bind:value={chosenVariable}>
+    {#each get(variables) as variable}
+    <option value="{get(variable.name)}">{get(variable.name)}</option> 
+    {/each}
+</Select>
+{#each get(variables) as variable}
+{#if get(variable.type) == "true/false"}
+<Label>True </Label><Radio checked={true} name="variableValue" value="true" bind:group={selectedRadio}/><Label>False </Label><Radio name="variableValue" value="false" bind:group={selectedRadio}/>
+{:else if get(variable.type) == "text"}
+<Input id="variableValue" name="variableValue" style="" type="text" bind:value={newValue}/>
+{:else}
+<Input id="variableValue" name="variableValue" style="" type="number" bind:value={newValue}/>
+{/if}
+{/each}
+{:else if selectedOption == "if"}
+<ConditionSetter></ConditionSetter>
+{:else if selectedOption == "elseif"}
+<ConditionSetter></ConditionSetter>
+  {/if}
+  <Button id="addFunctionLine" on:click={() => {addFunctionalLine();
+    addFunctionClicked = false;
+  }}>Add line</Button>
+  <Button on:click={() => (addFunctionClicked = false)}>Hide</Button>
+    {/if}
     <div id="toolbar">
       <button class="ql-bold"></button>
       <button class="ql-italic"></button>
+      {#if selectedNode && selectedNode.type != "choice-node"}
       <label>Line owner: </label><input type="text" id="line-owner" bind:this={lineOwner}/>
+      {/if}
     </div>
     <div bind:this={editorElement} id="editor">
     </div>
@@ -180,7 +383,6 @@
     z-index: 10000000;
     font-size: 12px;
     background-color: #eee;
-    width: 25%;
     height: 70%;
 }
   
