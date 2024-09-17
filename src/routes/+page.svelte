@@ -5,15 +5,16 @@
   import StoryNode from './StoryNode.svelte';
   import ChoiceNode from './ChoiceNode.svelte';
   import NodeMenu from './NodeMenu.svelte';
-  import { Navbar, Button} from 'flowbite-svelte';
+  import { Navbar, Button, Modal, Card, Select} from 'flowbite-svelte';
   import { get, writable, type Writable } from 'svelte/store';
   import NodeEditPanel from './NodeEditPanel.svelte';
-  import { nodes, edges, variables } from './stores';
+  import { nodes, edges, variables, codeGenerationTriggered, startNode, generatedCode } from './stores';
 	import { onMount } from 'svelte';
   import { nodeRefs } from './stores';
 	import VariablePanel from './VariablePanel.svelte';
   import { focusedNodeContent } from './stores';
   import { isGlobalMode } from './stores';
+	import CodeGenerator from './CodeGenerator.svelte';
 
   const nodeTypes = {
     'story-node': StoryNode,
@@ -28,20 +29,21 @@
 
   let editPanelRef: HTMLDivElement | null = null;
 
+  export let defaultModal = false;
+  let modalTitle = "Generate code";
+
+
   
   function setCurrentValues(){
         $variables.forEach(variable => {
             let regex = new RegExp(`&lt;&lt;set\\s\\$${get(variable.name)}\\sto\\s([\\w\\d]+)&gt;&gt;`, 'g');
             const matches = Array.from(get(focusedNodeContent).matchAll(regex));
             if(matches.length == 0){
-              //  console.log("No match");
                 variable.currentValue.set(get(variable.declaredValue));
-               // console.log(get(variable.currentValue));
               }
               else {
             for (const match of matches) {
                 variable.currentValue.set(match[1]);
-              //  console.log(get(variable.currentValue));
             }
           }
         });
@@ -106,7 +108,6 @@
     $edges = $edges.filter((edge) => edge.id !== id);
   }
 
-
 </script>
 
   <div id="pageBody">
@@ -115,8 +116,7 @@
                 <div class="flex md:order-2">
                   <div id="navspace">APP</div>
                     <Button size="sm">Load a tree</Button>
-                    <Button size="sm">Save a tree & generate code</Button>
-                   
+                    <Button size="sm" on:click={() => {defaultModal = true;}}>Save a tree & generate code</Button>
                   </div>
             </Navbar>
           </div>
@@ -142,6 +142,48 @@
       id={editPanel.nodeId} title={editPanel.nodeTitle} deltaInput={editPanel.delta} content={editPanel.content} color={editPanel.color} on:close={() => editPanel = null}/>
           {/if}
       <VariablePanel/>
+      {#if $codeGenerationTriggered}
+      <CodeGenerator/>
+      {/if}
+        {#if modalTitle == "Generate code"}
+        <Modal title={modalTitle} bind:open={defaultModal} autoclose outsideclose>
+        <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">Choose the starting node:</p>
+        <Select bind:value={$startNode}>
+          {#each $nodes as node}
+          {#if node.type == "story-node"}
+          <option value="{get(node.data.title)}">{get(node.data.title)}</option> 
+          {/if}
+          {/each}
+      </Select>
+      {#if $startNode != ''}
+      <Button size="sm" on:click={() => {modalTitle = "Code generated!"; codeGenerationTriggered.set(true);}}>Generate code</Button>
+      {/if}
+      </Modal>
+        {:else}
+        <Modal title={modalTitle} bind:open={defaultModal} autoclose outsideclose>
+        <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">You now can preview and copy the code or save it in /saves folder.</p>
+        <div id="generatedCode">
+          <p class="font-normal text-gray-700 dark:text-gray-400 leading-tight">{$generatedCode}</p>
+        </div>
+        <Button>Copy to clipboard</Button>
+        <svelte:fragment slot="footer">
+          <Button on:click={() => alert('Handle "success"')}>Export to a .yarn file</Button>
+          <Button color="alternative">Regenerate</Button>
+        </svelte:fragment>
+      </Modal>
+      {/if}
       </SvelteFlow>  
     </div>
       </div>
+<style>
+  #generatedCode {
+    height: 300px !important;
+    width: 100%;
+    overflow-y: auto;
+    background-color: #384a6494;
+    padding: 20px;
+    border-radius: 2%;
+    white-space: pre-wrap;
+  }
+
+</style>

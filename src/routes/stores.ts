@@ -54,7 +54,7 @@ export function createNode(type: string, x: number, y: number, color: string, de
 export const nodes = writable<Node[]>([ 
   createNode('story-node', 100, 100, '#ffffff', {ops: [
     { insert: 'aaaaa'}
-  ]},'aaaaa', 'New Node1'), 
+  ]},'aaaaa', 'New_Node1'), 
   createNode('choice-node', 200, 200, '#454545', {ops: [
     { insert: 'How could I lie to you?'}
   ]}, 'How could I lie to you?')
@@ -67,5 +67,9 @@ export let variables: Writable<Array<Variable>> = writable([]);
 export let conditions: Writable<Array<Condition>> = writable([]);
 export let focusedNodeContent: Writable<string> = writable("");
 export let isGlobalMode: Writable<boolean> = writable(true);
+
+export const codeGenerationTriggered: Writable<boolean> = writable(false);
+export let startNode: Writable<string> = writable('');
+export let generatedCode: Writable<string> = writable('');
 
 
