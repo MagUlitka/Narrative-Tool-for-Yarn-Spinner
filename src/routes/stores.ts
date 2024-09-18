@@ -69,7 +69,14 @@ export let focusedNodeContent: Writable<string> = writable("");
 export let isGlobalMode: Writable<boolean> = writable(true);
 
 export const codeGenerationTriggered: Writable<boolean> = writable(false);
+export const saveFileTriggered: Writable<boolean> = writable(false);
+export const treeLoadingTriggered: Writable<boolean> = writable(false);
+
 export let startNode: Writable<string> = writable('');
 export let generatedCode: Writable<string> = writable('');
+export let yarnConversionCode: Writable<string> = writable('');
+
+export let fileLoader: Writable<HTMLInputElement | null> = writable(null);
+
 
 

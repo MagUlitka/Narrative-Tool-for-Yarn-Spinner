@@ -5,7 +5,8 @@
     type YarnNodeData = {
         title: string;
         group?: string;
-        backgorund?: string;
+        color?: string;
+        background?: string;
         position?: {
             x: number,
             y: number
@@ -15,6 +16,7 @@
 
     let yarnNode: YarnNodeData = {
         title: 'title: ',
+        color: 'color: ',
         content: ''
     };
 
@@ -67,6 +69,7 @@
     function generateCode(){
         const startingNode = $nodes.find(node => get(node.data.title) == $startNode);
         yarnNode.title = yarnNode.title + get(startingNode.data.title);
+        yarnNode.color = yarnNode.color + get(startingNode.data.color);
         yarnNode.content = get(startingNode.data.content);
         let yarnDeclaredVariables = '';
         $variables.forEach(variable => {
@@ -76,19 +79,20 @@
         getAllChildren(startingNode);
         writeJumps(nodeChildren[0]);
 
-        const yarnNodeText = yarnNode.title + "\n---\n" + yarnDeclaredVariables + convertFontEffects(yarnNode.content).replace(/<\/?p>/g, "") + yarnJumps + "\n===\n\n";
+        const yarnNodeText = yarnNode.title + "\n" + yarnNode.color + "\n---\n" + yarnDeclaredVariables + convertFontEffects(yarnNode.content).replace(/<\/?p>/g, "") + yarnJumps + "\n===\n\n";
         yarnCode = yarnCode + yarnNodeText;
         $nodes.forEach(node => {
             if(get(node.data.title) != $startNode){
-                yarnNode = {title: 'title: ', content: ''};
+                yarnNode = {title: 'title: ', color: 'color: ', content: ''};
                 nodeChildren = [];
                 yarnJumps = '';
                 if(node.type == "story-node"){
                     yarnNode.title = yarnNode.title + get(node.data.title);
+                    yarnNode.color = yarnNode.color + get(node.data.color);
                     yarnNode.content = get(node.data.content);
                     getAllChildren(node);
                     writeJumps(nodeChildren[0]);
-                    const yarnNodeText = yarnNode.title + "\n---\n" + convertFontEffects(yarnNode.content).replace(/<\/?p>/g, "") + yarnJumps + "\n===\n\n";
+                    const yarnNodeText = yarnNode.title + "\n" + yarnNode.color + "\n---\n" + convertFontEffects(yarnNode.content).replace(/<\/?p>/g, "") + yarnJumps + "\n===\n\n";
                     yarnCode = yarnCode + yarnNodeText;
                 }
             } 
@@ -98,6 +102,7 @@
 
     $: if($codeGenerationTriggered){
         generateCode();
+        $codeGenerationTriggered = false;
     }
 
 </script>
