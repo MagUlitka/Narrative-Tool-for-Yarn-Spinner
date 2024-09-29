@@ -4,20 +4,28 @@
 
     type YarnNodeData = {
         title: string;
+        id: string;
         group?: string;
         color?: string;
         background?: string;
-        position?: {
+        position: {
             x: number,
             y: number
         };
         content: string;
+        outgoers: Array<string>;
     }
 
     let yarnNode: YarnNodeData = {
         title: 'title: ',
+        id: 'id: ',
         color: 'color: ',
-        content: ''
+        position: {
+            x: 0,
+            y: 0
+        },
+        content: '',
+        outgoers: []
     };
 
     let yarnCode = '';
@@ -43,17 +51,26 @@
         }
        return true;
     }
-
+    
+    function getChildren(parentNode): Array<string> {
+        let children = parentNode.data.outgoers as Node[];
+        let childrenIds = Array<string>();
+        children.forEach(child => {
+            childrenIds.push(child.id);
+        });
+        return childrenIds;
+    }
     function writeJumps(childrenArray) {
        childrenArray.forEach(child => {
         tabCounter += 1;
         if(child.type == "story-node"){
-                    yarnJumps = yarnJumps + "\t".repeat(tabCounter) + "<<jump " + get(child.data.title) + ">>";
+                    yarnJumps = yarnJumps + "\n" + "\t".repeat(tabCounter) + "<<jump " + get(child.data.title) + ">>";
                     tabCounter++;
                 }
                 else {
                     let choiceContent = get(child.data.content) as string;
-                    yarnJumps = yarnJumps + "\n" + "\t".repeat(tabCounter) + "-> " + convertFontEffects(choiceContent).replace(/<\/?p>/g, "") + "\n";
+                    yarnJumps = yarnJumps + "\n" + "\t".repeat(tabCounter) + "-> " + convertFontEffects(choiceContent).replace(/<\/?p>/g, "") + " #color:" + get(child.data.color) + 
+                    " #position:" + child.position.x + "," + child.position.y + " #id:" + child.data.nodeId + " #children:" + getChildren(child).join(",") + "\n";
                     tabCounter++;
 
                 }
@@ -69,8 +86,12 @@
     function generateCode(){
         const startingNode = $nodes.find(node => get(node.data.title) == $startNode);
         yarnNode.title = yarnNode.title + get(startingNode.data.title);
+        yarnNode.id = yarnNode.id + startingNode.data.nodeId;
         yarnNode.color = yarnNode.color + get(startingNode.data.color);
+        yarnNode.position.x = startingNode.position.x;
+        yarnNode.position.y = startingNode.position.y;
         yarnNode.content = get(startingNode.data.content);
+        yarnNode.outgoers = getChildren(startingNode);
         let yarnDeclaredVariables = '';
         $variables.forEach(variable => {
             yarnDeclaredVariables = yarnDeclaredVariables + "<<declare $" + get(variable.name) + " = \"" + get(variable.declaredValue) + "\">>\n";            
@@ -79,20 +100,25 @@
         getAllChildren(startingNode);
         writeJumps(nodeChildren[0]);
 
-        const yarnNodeText = yarnNode.title + "\n" + yarnNode.color + "\n---\n" + yarnDeclaredVariables + convertFontEffects(yarnNode.content).replace(/<\/?p>/g, "") + yarnJumps + "\n===\n\n";
+        const yarnNodeText = yarnNode.title + "\n" + yarnNode.id + "\n" + yarnNode.color + "\nposition: " + yarnNode.position.x + ", " + yarnNode.position.y +
+         "\nchildren: " + yarnNode.outgoers.join(",") + "\n---\n" + yarnDeclaredVariables + convertFontEffects(yarnNode.content).replace(/<\/?p>/g, "") + yarnJumps + "\n===\n\n";
         yarnCode = yarnCode + yarnNodeText;
         $nodes.forEach(node => {
             if(get(node.data.title) != $startNode){
-                yarnNode = {title: 'title: ', color: 'color: ', content: ''};
+                yarnNode = {title: 'title: ', id: 'id: ', color: 'color: ',  position: { x: 0, y: 0}, content: '', outgoers: []};
                 nodeChildren = [];
                 yarnJumps = '';
                 if(node.type == "story-node"){
                     yarnNode.title = yarnNode.title + get(node.data.title);
+                    yarnNode.id = yarnNode.id + node.data.nodeId;
                     yarnNode.color = yarnNode.color + get(node.data.color);
+                    yarnNode.position.x = node.position.x;
+                    yarnNode.position.y = node.position.y;
                     yarnNode.content = get(node.data.content);
+                    yarnNode.outgoers = getChildren(node);
                     getAllChildren(node);
                     writeJumps(nodeChildren[0]);
-                    const yarnNodeText = yarnNode.title + "\n" + yarnNode.color + "\n---\n" + convertFontEffects(yarnNode.content).replace(/<\/?p>/g, "") + yarnJumps + "\n===\n\n";
+                    const yarnNodeText = yarnNode.title + "\n" + yarnNode.id + "\n" + yarnNode.color + yarnNode.position.x + ", " + yarnNode.position.y + "\nchildren: " + yarnNode.outgoers.join(",") + "\n---\n" + convertFontEffects(yarnNode.content).replace(/<\/?p>/g, "") + yarnJumps + "\n===\n\n";
                     yarnCode = yarnCode + yarnNodeText;
                 }
             } 

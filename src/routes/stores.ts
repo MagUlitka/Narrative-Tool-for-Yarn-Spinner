@@ -1,4 +1,4 @@
-import { writable, type Writable } from "svelte/store";
+import { get, writable, type Writable } from "svelte/store";
 import { getIncomers, type Edge, type Node } from '@xyflow/svelte';
 
 type NodeReference = {
@@ -27,11 +27,11 @@ export type Condition = {
 }
 
 
-let lastId = 0;
+export let lastId = writable(0);
 
 function getNextId(): number {
-  lastId += 1;
-  return lastId;
+  lastId.set(get(lastId) + 1);
+  return get(lastId);
 }
 
 export function createNode(type: string, x: number, y: number, color: string, delta: any, content: string, title?: string): Node {
@@ -46,6 +46,22 @@ export function createNode(type: string, x: number, y: number, color: string, de
       delta: writable(delta),
       content: writable(content),
       nodeId: newId,
+      outgoers: null
+    }
+  };
+}
+
+export function recreateNode(id: string, type: string, x: number, y: number, color: string, delta: any, content: string, title?: string): Node {
+  return {
+    id: id,
+    type,
+    position: { x, y },
+    data: {
+      title: writable(title),
+      color: writable(color),
+      delta: writable(delta),
+      content: writable(content),
+      nodeId: id,
       outgoers: null
     }
   };
@@ -77,6 +93,10 @@ export let generatedCode: Writable<string> = writable('');
 export let yarnConversionCode: Writable<string> = writable('');
 
 export let fileLoader: Writable<HTMLInputElement | null> = writable(null);
+
+// export let exCanvasX: Writable<number> = writable();
+// export let exCanvasY: Writable<number> = writable();
+// export let exZoom: Writable<number> = writable();
 
 
 

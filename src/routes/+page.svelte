@@ -1,13 +1,13 @@
 
 
 <script lang="ts">
-  import { SvelteFlow, Background, Controls, MiniMap } from '@xyflow/svelte';
+  import { SvelteFlow, Background, Controls, MiniMap, useSvelteFlow, SvelteFlowProvider } from '@xyflow/svelte';
   import '@xyflow/svelte/dist/style.css';
   import StoryNode from './StoryNode.svelte';
   import ChoiceNode from './ChoiceNode.svelte';
   import NodeMenu from './NodeMenu.svelte';
   import { Navbar, Button, Modal, Select, Textarea, Fileupload, Label} from 'flowbite-svelte';
-  import { get, type Writable } from 'svelte/store';
+  import { get, writable, type Writable } from 'svelte/store';
   import NodeEditPanel from './NodeEditPanel.svelte';
   import { nodes, edges, variables, codeGenerationTriggered, startNode, generatedCode, saveFileTriggered, yarnConversionCode, treeLoadingTriggered, fileLoader} from './stores';
 	import { onMount } from 'svelte';
@@ -130,7 +130,6 @@
   }
 
 </script>
-
   <div id="pageBody">
         <div class="relative px-8">
             <Navbar class="px-2 sm:px-4 py-2.5 fixed w-full z-20 top-0 start-0 border-b">
@@ -142,8 +141,9 @@
             </Navbar>
           </div>
     <div id="svelteCanvas" bind:clientWidth={width} bind:clientHeight={height}>
-      <SvelteFlow {nodes} {edges} {nodeTypes} colorMode="dark" on:nodecontextmenu={handleContextMenu}
-      on:paneclick={(event) => handlePaneClick(event)}  on:contextmenu={(event) => handlePaneClick(event)} fitView defaultEdgeOptions={{deletable: true}} on:edgeclick={deleteEdge}>
+      
+      <SvelteFlow {nodes} {edges} {nodeTypes} fitView colorMode="dark" on:nodecontextmenu={handleContextMenu}
+      on:paneclick={(event) => handlePaneClick(event)}  on:contextmenu={(event) => handlePaneClick(event)} defaultEdgeOptions={{deletable: true}} on:edgeclick={deleteEdge}>
         <Background />
         <Controls />
         <MiniMap nodeStrokeWidth={3} pannable/>
@@ -209,6 +209,7 @@
       </Modal>
       {/if}
       </SvelteFlow>  
+    
     </div>
       </div>
 <style>

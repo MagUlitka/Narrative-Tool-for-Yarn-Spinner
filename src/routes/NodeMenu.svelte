@@ -88,18 +88,19 @@
 
   function addNode(event) {
     if(left && top){
+      const cursorX = event.clientX;
+      const cursorY = event.clientY;
       let newNode;
       if(event.target.value == "story-node"){
-        newNode = createNode(event.target.value, 200, 200, '#eeeeee',{}, '', 'default-title');
+        newNode = createNode(event.target.value, cursorX, cursorY, '#eeeeee',{}, '', 'default-title');
       }
       else {
-        newNode = createNode(event.target.value, 200, 200, '#454545',{}, '');
+        newNode = createNode(event.target.value, cursorX, cursorY, '#454545',{}, '');
       }
       $allNodes.push(newNode);
     
     $allNodes = $allNodes;
-    // const { zoomIn, zoomOut, setZoom, fitView, setCenter, setViewport, getViewport, viewport } =
-    // useSvelteFlow();
+    
 
     // setViewport({x: left, y: top, zoom: 2});
     }
