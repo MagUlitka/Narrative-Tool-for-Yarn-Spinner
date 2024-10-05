@@ -1,14 +1,14 @@
 <script lang="ts" module="">
     import NodeData from "./StoryNode.svelte";
 	  import { get, writable, type Writable } from "svelte/store";
-    import { conditions, nodes } from "./stores";
+    import { conditions, hideTitleSelected, nodes } from "./stores";
     import 'quill/dist/quill.snow.css';
     import type Quill  from "quill";
     import { onDestroy, onMount } from 'svelte';
     import { type Variable } from "./stores";
     import { variables } from "./stores";
-	import { Button, Input, Label, Radio, Select} from "flowbite-svelte";
-	import ConditionSetter from "./ConditionSetter.svelte";
+    import { Button, Input, Label, Radio, Select, Helper, Checkbox} from "flowbite-svelte";
+    import ConditionSetter from "./ConditionSetter.svelte";
   
     export let title: Writable<string> = writable('');
     export let id: string;
@@ -33,6 +33,11 @@
     let chosenVariable: Variable;
     let newValue: any;
     let selectedRadio: string;
+
+    const numberPattern = /(\d+)$/;
+    let inputTitle = ''; 
+    let lastValidTitle = '';
+    let titleExists = false;
 
 
     onMount(() => {
@@ -99,6 +104,7 @@
       }
       });
     }
+    inputTitle = get(title);
   });
 
   onDestroy(() => {
@@ -108,11 +114,7 @@
     }
   });
 
-    // type Node = {
-    //   id: string;
-    //   data: NodeData;
-    //   position: { x: number; y: number };
-    //   }
+  $:console.log(get(hideTitleSelected));
 
     $: {
       // constantly check whether the node was changed and load its content into editor
@@ -160,7 +162,33 @@
                   }
     }
 
-    $: updateNode({ title, content, color });
+//   $: updateNode({ title, content, color });
+
+    function validateTitle() {
+      const titleVal = inputTitle.trim();
+      const currentNodes = get(nodes);
+      titleExists = currentNodes.some(node => {
+          return node.id !== id && get(node.data.title) === titleVal;
+      });
+      if (!titleExists && titleVal) {
+          lastValidTitle = titleVal;
+      }
+  }
+
+  $: title.subscribe(validateTitle);
+
+  function saveTitle() {
+    if (!titleExists && inputTitle.trim()) {
+      title.set(inputTitle);
+      updateNode({ title, content, color });
+    }
+    else {
+      inputTitle = lastValidTitle;
+      title.set(inputTitle);
+      console.log(get(title));
+      updateNode({ title, content, color });
+    }
+  }
 
     // update node array with new values
     function updateNode({title, content, color}: {
@@ -317,17 +345,24 @@
     }
 </script>
 <div class="updatenode__panel" bind:this={panelRef}>
+  <div class="grid gap-6 mb-6 md:grid-cols-2">
   {#if selectedNode && selectedNode.type != "choice-node"}
-    <label>Title:</label>
-    <input bind:value={$title}/>
+  <Label for='titleInput' class='block mb-2'>Title:</Label>
+    <Input id='titleInput' bind:value={inputTitle} on:input={validateTitle} on:blur={saveTitle} />
+    {#if titleExists}
+    <Helper class='mt-2' color='red'><span class="font-medium">This title is already in use.</Helper>
     {/if}
-
-    <label class="updatenode__bglabel">Color:</label>
-    <input type="color" bind:value={$color}/>
+    {/if}
+    <Label for='hideTitle'>Hide title?</Label>
+    <Checkbox id="hideTitle" bind:checked={$hideTitleSelected}></Checkbox>
+    <Label for='colorInput' class='block mb-2'>Color:</Label>
+    <input id="colorInput" type="color" bind:value={$color}/>
+  </div>
 
     <Button on:click={() => (addFunctionClicked = true)}>+ Add functional line</Button>
+ 
     {#if addFunctionClicked}
-    <select bind:value={selectedOption}>
+    <select bind:value={selectedOption} style="background-color:#374151;">
       {#if selectedNode && selectedNode.type != "choice-node"}
       <option value="set" selected>set variable</option>
       {/if}
@@ -358,32 +393,39 @@
 {:else if selectedOption == "elseif"}
 <ConditionSetter></ConditionSetter>
   {/if}
+  <div class="grid gap-6 mb-6 md:grid-cols-2">
   <Button id="addFunctionLine" on:click={() => {addFunctionalLine();
     addFunctionClicked = false;
   }}>Add line</Button>
   <Button on:click={() => (addFunctionClicked = false)}>Hide</Button>
+</div>
     {/if}
+  
     <div id="toolbar">
       <button class="ql-bold"></button>
       <button class="ql-italic"></button>
       {#if selectedNode && selectedNode.type != "choice-node"}
-      <label>Line owner: </label><input type="text" id="line-owner" bind:this={lineOwner}/>
+      <Label for="line-owner" class='block mb-2' style='float:left;'>Line owner: </Label><input type="text" id="line-owner" bind:this={lineOwner}/>
       {/if}
     </div>
-    <div bind:this={editorElement} id="editor">
+    <div bind:this={editorElement} class:addFunctionClicked id="editor">
     </div>
 
   </div>
 
   <style>
     .updatenode__panel {
-    position: absolute;
-    left: 10px;
-    top: 20%;
+      position: absolute;
+    left: 50px;
+    top: 10%;
     z-index: 10000000;
     font-size: 12px;
-    background-color: #eee;
-    height: 70%;
+    background-color: #282828;
+    height: auto;
+    max-height: 80vh;
+    padding: 20px;
+    border-radius: 10px;
+    color: #eee;
 }
   
     .updatenode__bglabel {
@@ -397,12 +439,43 @@
     }
 
     #line-owner {
-      height: 10px;
-      width: 30%;
+      height: 29px;
+    display: inline-block;
+    float: left;
+    background-color: #374151;
+    border-radius: 5px;
+    margin-left: 10px;
+    }
+
+    #toolbar {
+      background-color: #1f2937;
+      padding: 10px;
     }
 
     #editor {
-      height: 80%;
+      height:auto;
       overflow-y: auto;
     }
+
+    #editor:not(.addFunctionClicked) {
+    max-height: 50vh; 
+  }
+
+    .addFunctionClicked {
+      max-height: 20vh;
+
+    }
+
+    input[type="color" i] {
+      inline-size: 180px;
+    block-size: 30px;
+    border-width: 3px;
+    border-style: solid;
+    border-color: rgb(31 41 55);
+}
+
+input[type="color" i]::-webkit-color-swatch-wrapper {
+    padding: 1px;
+    background-color: rgb(31 41 55);
+}
   </style> 

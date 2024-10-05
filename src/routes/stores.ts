@@ -46,7 +46,7 @@ export function createNode(type: string, x: number, y: number, color: string, de
       delta: writable(delta),
       content: writable(content),
       nodeId: newId,
-      outgoers: null
+      outgoers: null,
     }
   };
 }
@@ -62,7 +62,7 @@ export function recreateNode(id: string, type: string, x: number, y: number, col
       delta: writable(delta),
       content: writable(content),
       nodeId: id,
-      outgoers: null
+      outgoers: null,
     }
   };
 }
@@ -83,6 +83,7 @@ export let variables: Writable<Array<Variable>> = writable([]);
 export let conditions: Writable<Array<Condition>> = writable([]);
 export let focusedNodeContent: Writable<string> = writable("");
 export let isGlobalMode: Writable<boolean> = writable(true);
+export let hideTitleSelected: Writable<boolean> = writable(false);
 
 export const codeGenerationTriggered: Writable<boolean> = writable(false);
 export const saveFileTriggered: Writable<boolean> = writable(false);
@@ -93,10 +94,6 @@ export let generatedCode: Writable<string> = writable('');
 export let yarnConversionCode: Writable<string> = writable('');
 
 export let fileLoader: Writable<HTMLInputElement | null> = writable(null);
-
-// export let exCanvasX: Writable<number> = writable();
-// export let exCanvasY: Writable<number> = writable();
-// export let exZoom: Writable<number> = writable();
 
 
 

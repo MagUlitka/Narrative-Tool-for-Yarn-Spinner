@@ -1,10 +1,9 @@
 <script lang="ts">
-    import { useEdges, useNodes, useNodesData, useSvelteFlow } from '@xyflow/svelte';
+    import { useEdges, useNodes } from '@xyflow/svelte';
     import { get, writable, type Writable } from 'svelte/store';
     import NodeData from "./StoryNode.svelte";
     import { createEventDispatcher } from 'svelte';
     import { createNode, nodes } from './stores';
-    import fitView from './+page.svelte';
 
     export let onClick: ({ detail: { event } }) => void;
     export let id: string = '0';
@@ -24,12 +23,12 @@
         nodes.subscribe(nodeArray => {
           const selectedNode = nodeArray.find(node => node.id === id);
           if (selectedNode) {
-             const nodeData = selectedNode.data as NodeData;
-             nodeType = selectedNode.type as string;
-             nodeTitle = nodeData.title as Writable<string>;
-             nodeContent =  nodeData.content as Writable<string>;
-             nodeColor =  nodeData.color as Writable<string>;
-             nodeDelta = nodeData.delta as Writable<any>;
+            const nodeData = selectedNode.data as NodeData;
+            nodeType = selectedNode.type as string;
+            nodeTitle = nodeData.title as Writable<string>;
+            nodeContent =  nodeData.content as Writable<string>;
+            nodeColor =  nodeData.color as Writable<string>;
+            nodeDelta = nodeData.delta as Writable<any>;
             }
         })
        
@@ -38,6 +37,7 @@
     const allNodes = useNodes();
     const allEdges = useEdges();
     let lastId = $allNodes.at(-1)?.id == undefined ? 1 : $allNodes.at(-1)?.id;
+    const numberPattern = /(\d+)$/;
 
     function duplicateNode() {
       const node = $allNodes.find((node) => node.id === id);
@@ -47,13 +47,27 @@
         let newNode;
         lastId = parseInt(foundNode.id) + 1;
         if(nodeType == "story-node"){
-       newNode = createNode(
-        nodeType, node.position.x + 100, node.position.y + 100, get(nodeColor), get(nodeDelta), get(nodeContent), get(nodeTitle))
+          let duplicateTitle = get(nodeTitle);
+          let titleExists = true;
+          while (titleExists) {
+          if (numberPattern.test(duplicateTitle)) {
+            let match = duplicateTitle.match(numberPattern);
+            duplicateTitle = duplicateTitle.replace(numberPattern, (parseInt(match[1]) + 1).toString());
+          } else {
+            duplicateTitle += 1;
+          }
+          titleExists = $allNodes.some(existingNode => {
+            let existingNodeData = existingNode.data as NodeData;
+            return get(existingNodeData.title) === duplicateTitle;
+          });
+        }
+        
+        newNode = createNode(
+        nodeType, node.position.x + 100, node.position.y + 100, get(nodeColor), get(nodeDelta), get(nodeContent), duplicateTitle);
        }
        else {
         newNode = createNode(
-        nodeType, node.position.x + 100, node.position.y + 100, get(nodeColor), get(nodeDelta), get(nodeContent))
-        
+        nodeType, node.position.x + 100, node.position.y + 100, get(nodeColor), get(nodeDelta), get(nodeContent));
        }
        $allNodes.push(newNode);
        }
@@ -70,7 +84,6 @@
     //enables editPanel
 
     function editNode() {
-
       const node = $allNodes.find((node) => node.id === id);
       if(node){
         const title = nodeTitle;
@@ -92,17 +105,29 @@
       const cursorY = event.clientY;
       let newNode;
       if(event.target.value == "story-node"){
-        newNode = createNode(event.target.value, cursorX, cursorY, '#eeeeee',{}, '', 'default-title');
+        let titleExists = true;
+        let defaultTitle = 'default-title';
+          while (titleExists) {
+          if (numberPattern.test(defaultTitle)) {
+            let match = defaultTitle.match(numberPattern);
+            defaultTitle = defaultTitle.replace(numberPattern, (parseInt(match[1]) + 1).toString());
+          } else {
+            defaultTitle += 1;
+          }
+          titleExists = $allNodes.some(existingNode => {
+            let existingNodeData = existingNode.data as NodeData;
+            return get(existingNodeData.title) === defaultTitle;
+          });
+        }
+        newNode = createNode(event.target.value, cursorX, cursorY, '#eeeeee',{ops: [
+    { insert: 'default content'}]}, 'default content', defaultTitle);
       }
       else {
-        newNode = createNode(event.target.value, cursorX, cursorY, '#454545',{}, '');
+        newNode = createNode(event.target.value, cursorX, cursorY, '#454545',{ops: [
+          { insert: 'default content'}]}, 'default content');
       }
       $allNodes.push(newNode);
-    
-    $allNodes = $allNodes;
-    
-
-    // setViewport({x: left, y: top, zoom: 2});
+      $allNodes = $allNodes;
     }
   }
   </script>

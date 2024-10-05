@@ -134,9 +134,9 @@
         <div class="relative px-8">
             <Navbar class="px-2 sm:px-4 py-2.5 fixed w-full z-20 top-0 start-0 border-b">
                 <div class="flex md:order-2">
-                  <div id="navspace">APP</div>
-                    <Button size="sm" on:click={() => {loadModal = true;}}>Load a tree</Button>
-                    <Button size="sm" on:click={() => {defaultModal = true;}}>Save a tree & generate code</Button>
+                  <div id="navspace">Narrative Tool for Yarn Spinner</div>
+                    <Button size="sm" on:click={() => {loadModal = true; defaultModal = false;}}>Load a tree</Button>
+                    <Button size="sm" on:click={() => {defaultModal = true; loadModal = false;}}>Save a tree & generate code</Button>
                   </div>
             </Navbar>
           </div>

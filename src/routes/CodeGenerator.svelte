@@ -118,7 +118,7 @@
                     yarnNode.outgoers = getChildren(node);
                     getAllChildren(node);
                     writeJumps(nodeChildren[0]);
-                    const yarnNodeText = yarnNode.title + "\n" + yarnNode.id + "\n" + yarnNode.color + yarnNode.position.x + ", " + yarnNode.position.y + "\nchildren: " + yarnNode.outgoers.join(",") + "\n---\n" + convertFontEffects(yarnNode.content).replace(/<\/?p>/g, "") + yarnJumps + "\n===\n\n";
+                    const yarnNodeText = yarnNode.title + "\n" + yarnNode.id + "\n" + yarnNode.color + "\nposition: " + yarnNode.position.x + ", " + yarnNode.position.y + "\nchildren: " + yarnNode.outgoers.join(",") + "\n---\n" + convertFontEffects(yarnNode.content).replace(/<\/?p>/g, "") + yarnJumps + "\n===\n\n";
                     yarnCode = yarnCode + yarnNodeText;
                 }
             } 
