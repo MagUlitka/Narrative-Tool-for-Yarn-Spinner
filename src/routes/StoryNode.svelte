@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Position, NodeResizer, type NodeProps, getOutgoers} from '@xyflow/svelte';
     import {get, type Writable } from 'svelte/store';
-    import { edges, focusedNodeContent, isGlobalMode, nodeRefs, nodes, variables } from './stores';
+    import { edges, focusedNodeContent, hideTitleSelected, isGlobalMode, nodeRefs, nodes, variables } from './stores';
 	import { onDestroy, onMount } from 'svelte';
 	import CustomHandle from './CustomHandle.svelte';
     type $Props = NodeProps;
@@ -37,6 +37,7 @@
         data.content.subscribe(value => localContent = value);
         data.delta.subscribe(value => localDelta = value);
         data.outgoers = getOutgoers({ id: data.nodeId }, $nodes, $edges);
+
     }
 
     $$restProps;
@@ -73,7 +74,9 @@
     <NodeResizer minWidth={100} minHeight={100} isVisible={selected} />
     <CustomHandle handleType="target" position={Position.Top} data={data}></CustomHandle>
     <div>
+      {#if !$hideTitleSelected}
     title: <strong>{localTitle}</strong><br>
+    {/if}
     <div class="storynode__content">
       {@html localContent}
     </div>
@@ -92,5 +95,6 @@
     
     .storynode__content {
       white-space: pre-wrap;
+      max-height: 300px;
     }
   </style>

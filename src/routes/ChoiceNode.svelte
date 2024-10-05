@@ -2,7 +2,7 @@
     import { Position, NodeResizer, type NodeProps, getOutgoers } from '@xyflow/svelte';
     import {get, type Writable } from 'svelte/store';
     import { edges, focusedNodeContent, isGlobalMode, nodeRefs, nodes, variables } from './stores';
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import CustomHandle from './CustomHandle.svelte';
     type $Props = NodeProps;
     type NodeData = {

@@ -35,6 +35,7 @@
     }
 
 </script>
+<div id="conditionTable">
 <Table striped={true}>
     <TableBody tableBodyClass="divide-y">
     {#each $conditions as condition, i}
@@ -161,7 +162,17 @@
       </TableBodyCell>
     </TableBodyRow>
     {/each}
-    <Button on:click={() => {addCondition(createCondition($conditions.length+1,"",null,"","",null,[],[]));
+    <Button style="width: 100%;" on:click={() => {addCondition(createCondition($conditions.length+1,"",null,"","",null,[],[]));
     }}>Add condition</Button>
     </TableBody>
     </Table>
+  </div>
+    <style>
+
+      #conditionTable {
+        max-width: 1200px !important;
+        max-height: 250px !important;
+        overflow: auto !important;
+        margin: 15px;
+      }
+    </style>
