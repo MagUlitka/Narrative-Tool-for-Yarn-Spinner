@@ -9,7 +9,7 @@
   import { Navbar, Button, Modal, Select, Textarea, Fileupload, Label} from 'flowbite-svelte';
   import { get, writable, type Writable } from 'svelte/store';
   import NodeEditPanel from './NodeEditPanel.svelte';
-  import { nodes, edges, variables, codeGenerationTriggered, startNode, generatedCode, saveFileTriggered, yarnConversionCode, treeLoadingTriggered, fileLoader} from './stores';
+  import { nodes, edges, variables, codeGenerationTriggered, startNode, generatedCode, saveFileTriggered, yarnConversionCode, treeLoadingTriggered, fileLoader, fileSelected} from './stores';
 	import { onMount } from 'svelte';
   import { nodeRefs } from './stores';
 	import VariablePanel from './VariablePanel.svelte';
@@ -37,7 +37,7 @@
   export let loadModal = false;
   let modalTitle = "Generate code";
 
-  let fileSelected: boolean = false;
+
 
   $: if(!defaultModal){
     $generatedCode = '';
@@ -48,10 +48,10 @@
 
   function handleFileChange() {
     if ($fileLoader && $fileLoader.files && $fileLoader.files.length > 0) {
-      fileSelected = true;
+      fileSelected.set(true);
       console.log('File selected:', $fileLoader.files[0].name);
     } else {
-      fileSelected = false;
+      fileSelected.set(false);
     }
   }
 
