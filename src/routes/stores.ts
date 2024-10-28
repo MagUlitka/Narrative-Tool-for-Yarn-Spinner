@@ -94,6 +94,7 @@ export let generatedCode: Writable<string> = writable('');
 export let yarnConversionCode: Writable<string> = writable('');
 
 export let fileLoader: Writable<HTMLInputElement | null> = writable(null);
+export let fileSelected: Writable<boolean> = writable(false);
 
 
 

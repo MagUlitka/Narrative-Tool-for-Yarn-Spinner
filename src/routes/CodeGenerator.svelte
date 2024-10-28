@@ -34,7 +34,7 @@
     let nodeChildren: Array<Array<Node>> = [];
 
         function convertFontEffects(nodeContent: string){
-            return nodeContent.replace(/<strong>/g, "<b>").replace(/<\/strong>/g, "</b>").replace(/<em>/g, "<i>").replace(/<\/em>/g, "</i>");
+            return nodeContent.replace(/<strong>/g, "<b>").replace(/<\/strong>/g, "</b>").replace(/<em>/g, "<i>").replace(/<\/em>/g, "</i>").replace(/<p>/g, "").replace(/<\/p>/g, "<br>");
         }
 
         function getAllChildren(parentNode): boolean {
@@ -64,12 +64,14 @@
        childrenArray.forEach(child => {
         tabCounter += 1;
         if(child.type == "story-node"){
-                    yarnJumps = yarnJumps + "\n" + "\t".repeat(tabCounter) + "<<jump " + get(child.data.title) + ">>";
+                    let title: string = get(child.data.title);
+                    yarnJumps = yarnJumps + "\n" + "\t".repeat(tabCounter) + "<<jump " + title.trim() + ">>";
+                    console.log(get(child.data.title));
                     tabCounter++;
                 }
                 else {
                     let choiceContent = get(child.data.content) as string;
-                    yarnJumps = yarnJumps + "\n" + "\t".repeat(tabCounter) + "-> " + convertFontEffects(choiceContent).replace(/<\/?p>/g, "") + " #color:" + get(child.data.color) + 
+                    yarnJumps = yarnJumps + "\n" + "\t".repeat(tabCounter) + "-> " + convertFontEffects(choiceContent) + " #color:" + get(child.data.color) + 
                     " #position:" + child.position.x + "," + child.position.y + " #id:" + child.data.nodeId + " #children:" + getChildren(child).join(",") + "\n";
                     tabCounter++;
 
