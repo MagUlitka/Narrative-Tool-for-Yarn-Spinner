@@ -1,7 +1,7 @@
 # Narrative-Tool-for-Yarn-Spinner
 A simple, user-friendly tool for generating Yarn script from the tree graph. Allows entry-level user to build and manage the narrative tree with ease; keeps track of variables, story flow and custom functions. Automatically generates nodes' titles. Works on most browsers.
 
-# Current version: 1.0.1 alpha (private use only)
+# Current version: 1.0.2 alpha (private use only)
 ### Features:
 - Easy-to-build and flexible narrative trees made of story nodes and choice nodes;
 - The tree can be converted anytime to a yarn script code and the generated code can be tranformed into a working tree;
@@ -10,6 +10,7 @@ A simple, user-friendly tool for generating Yarn script from the tree graph. All
 - User can use basic yarn spinner code functions, like declaring variables (which are stored in a variables table), setting variables' values, creating complex condition checks;
 - Each story node is generated as a separate yarn script dialogue for maximum flexibility in creating narrative;
 - User can use bold and italic inside the node's content editor and the formatting is kept in yarn script.
+- [Ver. 1.0.2] Fixed bugs connected with the tree loader
 
 
 # Remaining requirements
