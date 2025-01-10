@@ -162,8 +162,6 @@
                   }
     }
 
-//   $: updateNode({ title, content, color });
-
     function validateTitle() {
       const titleVal = inputTitle.trim();
       const currentNodes = get(nodes);
@@ -175,7 +173,7 @@
       }
   }
 
-  $: title.subscribe(validateTitle);
+  $: if(titleExists){title.subscribe(validateTitle);}
 
   function saveTitle() {
     if (!titleExists && inputTitle.trim()) {
